@@ -1,27 +1,107 @@
 import "server-only";
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { desc, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { Message } from "ai";
+import mongoose, { Schema, Document } from "mongoose";
 
-import { user, chat, User, reservation } from "./schema";
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI!;
 
-// Optionally, if not using email/pass login, you can
-// use the Drizzle adapter for Auth.js / NextAuth
-// https://authjs.dev/reference/adapter/drizzle
-const connectionString = process.env.POSTGRES_URL!;
-// Use SSL in production only; disable sslmode for local development
-const client = postgres(
-  process.env.NODE_ENV === "production"
-    ? `${connectionString}?sslmode=require`
-    : connectionString
-);
-let db = drizzle(client);
+if (!MONGODB_URI) {
+  throw new Error(
+    "Please define the MONGODB_URI environment variable inside .env.local"
+  );
+}
 
-export async function getUser(email: string): Promise<Array<User>> {
+async function connectToDatabase() {
   try {
-    return await db.select().from(user).where(eq(user.email, email));
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection;
+    }
+
+    const opts = {
+      bufferCommands: false,
+    };
+
+    console.log("Connecting to MongoDB...");
+    await mongoose.connect(MONGODB_URI, opts);
+    console.log("MongoDB connected successfully");
+    return mongoose.connection;
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    console.error("Make sure your MONGODB_URI is correct in .env.local");
+    throw error;
+  }
+}
+
+// Schemas and Models
+interface IUser extends Document {
+  _id: string;
+  email: string;
+  password?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IChat extends Document {
+  _id: string;
+  messages: Message[];
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IReservation extends Document {
+  _id: string;
+  details: any;
+  hasCompletedPayment: boolean;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const chatSchema = new Schema<IChat>(
+  {
+    messages: { type: Schema.Types.Mixed, required: true },
+    userId: { type: String, required: true, ref: "User" },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const reservationSchema = new Schema<IReservation>(
+  {
+    details: { type: Schema.Types.Mixed, required: true },
+    hasCompletedPayment: { type: Boolean, required: true, default: false },
+    userId: { type: String, required: true, ref: "User" },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+const Chat = mongoose.models.Chat || mongoose.model<IChat>("Chat", chatSchema);
+const Reservation =
+  mongoose.models.Reservation ||
+  mongoose.model<IReservation>("Reservation", reservationSchema);
+
+export async function getUser(email: string): Promise<Array<any>> {
+  try {
+    await connectToDatabase();
+    const users = await User.find({ email }).lean();
+    return users;
   } catch (error) {
     console.error("Failed to get user from database");
     throw error;
@@ -33,7 +113,8 @@ export async function createUser(email: string, password: string) {
   let hash = hashSync(password, salt);
 
   try {
-    return await db.insert(user).values({ email, password: hash });
+    await connectToDatabase();
+    return await User.create({ email, password: hash });
   } catch (error) {
     console.error("Failed to create user in database");
     throw error;
@@ -50,21 +131,17 @@ export async function saveChat({
   userId: string;
 }) {
   try {
-    const selectedChats = await db.select().from(chat).where(eq(chat.id, id));
+    await connectToDatabase();
 
-    if (selectedChats.length > 0) {
-      return await db
-        .update(chat)
-        .set({
-          messages: JSON.stringify(messages),
-        })
-        .where(eq(chat.id, id));
+    const existingChat = await Chat.findById(id);
+
+    if (existingChat) {
+      return await Chat.findByIdAndUpdate(id, { messages }, { new: true });
     }
 
-    return await db.insert(chat).values({
-      id,
-      createdAt: new Date(),
-      messages: JSON.stringify(messages),
+    return await Chat.create({
+      _id: id,
+      messages,
       userId,
     });
   } catch (error) {
@@ -75,7 +152,8 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
-    return await db.delete(chat).where(eq(chat.id, id));
+    await connectToDatabase();
+    return await Chat.findByIdAndDelete(id);
   } catch (error) {
     console.error("Failed to delete chat by id from database");
     throw error;
@@ -84,11 +162,8 @@ export async function deleteChatById({ id }: { id: string }) {
 
 export async function getChatsByUserId({ id }: { id: string }) {
   try {
-    return await db
-      .select()
-      .from(chat)
-      .where(eq(chat.userId, id))
-      .orderBy(desc(chat.createdAt));
+    await connectToDatabase();
+    return await Chat.find({ userId: id }).sort({ createdAt: -1 }).lean();
   } catch (error) {
     console.error("Failed to get chats by user from database");
     throw error;
@@ -97,8 +172,9 @@ export async function getChatsByUserId({ id }: { id: string }) {
 
 export async function getChatById({ id }: { id: string }) {
   try {
-    const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
-    return selectedChat;
+    await connectToDatabase();
+    const chat = await Chat.findById(id).lean();
+    return chat;
   } catch (error) {
     console.error("Failed to get chat by id from database");
     throw error;
@@ -114,22 +190,19 @@ export async function createReservation({
   userId: string;
   details: any;
 }) {
-  return await db.insert(reservation).values({
-    id,
-    createdAt: new Date(),
+  await connectToDatabase();
+  return await Reservation.create({
+    _id: id,
     userId,
     hasCompletedPayment: false,
-    details: JSON.stringify(details),
+    details,
   });
 }
 
 export async function getReservationById({ id }: { id: string }) {
-  const [selectedReservation] = await db
-    .select()
-    .from(reservation)
-    .where(eq(reservation.id, id));
-
-  return selectedReservation;
+  await connectToDatabase();
+  const reservation = await Reservation.findById(id).lean();
+  return reservation;
 }
 
 export async function updateReservation({
@@ -139,10 +212,17 @@ export async function updateReservation({
   id: string;
   hasCompletedPayment: boolean;
 }) {
-  return await db
-    .update(reservation)
-    .set({
-      hasCompletedPayment,
-    })
-    .where(eq(reservation.id, id));
+  await connectToDatabase();
+  return await Reservation.findByIdAndUpdate(
+    id,
+    { hasCompletedPayment },
+    { new: true }
+  );
 }
+
+// Export types for compatibility with existing code
+export type User = IUser;
+export type Chat = Omit<IChat, "messages"> & {
+  messages: Array<Message>;
+};
+export type Reservation = IReservation;
