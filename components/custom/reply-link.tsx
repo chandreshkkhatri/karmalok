@@ -15,7 +15,6 @@ export function ReplyLink({
   onStartThread,
   onViewThread,
 }: ReplyLinkProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [threadCount, setThreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,11 +40,7 @@ export function ReplyLink({
   }, [messageId, chatId]);
 
   return (
-    <div
-      className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="flex items-center gap-2 mt-2">
       <Button
         variant="ghost"
         size="sm"

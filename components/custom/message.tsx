@@ -26,7 +26,6 @@ export const Message = ({
   messageId,
   isThread = false,
   onStartThread,
-  onViewThread,
 }: {
   chatId: string;
   role: string;
@@ -40,7 +39,9 @@ export const Message = ({
 }) => {
   return (
     <motion.div
-      className={`group flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20`}
+      className={`flex items-start gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20 ${
+        role === "user" ? "flex-row-reverse text-right" : "flex-row text-left"
+      }`}
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
     >
@@ -123,12 +124,13 @@ export const Message = ({
 
         {/* Reply link for assistant messages in main chat */}
         {role === "assistant" && !isThread && messageId && onStartThread && (
-          <ReplyLink
-            messageId={messageId}
-            chatId={chatId}
-            onStartThread={onStartThread}
-            onViewThread={onViewThread}
-          />
+          <div className="mt-2">
+            <ReplyLink
+              messageId={messageId}
+              chatId={chatId}
+              onStartThread={onStartThread}
+            />
+          </div>
         )}
       </div>
     </motion.div>

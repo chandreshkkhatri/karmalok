@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { Message as PreviewMessage } from "@/components/custom/message";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { ThreadView } from "./thread-view";
-import { ThreadsList } from "./threads-list";
 import { generateUUID } from "@/lib/utils";
 
 import { MultimodalInput } from "./multimodal-input";
@@ -50,8 +49,8 @@ export function Chat({
     useScrollToBottom<HTMLDivElement>();
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [showThreadsList, setShowThreadsList] = useState<{
-    parentMessageId: string;
+  const [activeThread, setActiveThread] = useState<{
+    threadId: string;
     parentMessage: Message;
   } | null>(null);
 
@@ -59,35 +58,37 @@ export function Chat({
     const parentMessage = messages.find((msg) => msg.id === messageId);
     if (parentMessage && !isThread) {
       const threadId = generateUUID();
-      // Navigate to the thread page
-      router.push(
-        `/chat/${id}/thread/${threadId}?parentMessageId=${messageId}`
-      );
+      setActiveThread({ threadId, parentMessage });
     }
   };
 
-  const handleViewThread = (messageId: string) => {
-    const parentMessage = messages.find((msg) => msg.id === messageId);
-    if (parentMessage && !isThread) {
-      setShowThreadsList({
-        parentMessageId: messageId,
-        parentMessage,
-      });
+  const handleCloseThread = () => {
+    setActiveThread(null);
+    if (!isThread) {
+      router.push(`/chat/${id}`);
     }
-  };
-
-  const handleCloseThreadsList = () => {
-    setShowThreadsList(null);
   };
 
   return (
-    <div className="flex flex-row justify-center pb-4 md:pb-8 h-dvh bg-background">
-      <div className="flex flex-col justify-between items-center gap-4">
+    <div
+      className={`flex ${
+        isThread ? "flex-col h-full" : "flex-row pb-4 md:pb-8 h-dvh"
+      } bg-background`}
+    >
+      <div
+        className={`${
+          activeThread ? "w-2/3" : "w-full"
+        } flex flex-col justify-between items-center gap-4 ${
+          isThread ? "h-full" : ""
+        }`}
+      >
         <div
           ref={messagesContainerRef}
-          className="flex flex-col gap-4 h-full w-dvw items-center overflow-y-scroll"
+          className={`flex flex-col gap-4 h-full ${
+            isThread ? "w-full p-4" : "w-dvw"
+          } items-center overflow-y-scroll`}
         >
-          {messages.length === 0 && <Overview />}
+          {messages.length === 0 && !isThread && <Overview />}
 
           {messages.map((message) => (
             <PreviewMessage
@@ -100,7 +101,6 @@ export function Chat({
               messageId={message.id}
               isThread={isThread}
               onStartThread={handleStartThread}
-              onViewThread={handleViewThread}
             />
           ))}
 
@@ -110,29 +110,42 @@ export function Chat({
           />
         </div>
 
-        <form className="flex flex-row gap-2 relative items-end w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0">
+        <form
+          onSubmit={(e) =>
+            handleSubmit(e, {
+              experimental_attachments: attachments,
+            })
+          }
+          className={`flex flex-row gap-2 relative items-end w-full ${
+            isThread
+              ? "px-4 pb-4"
+              : "md:max-w-[500px] max-w-[calc(100dvw-32px)] px-4 md:px-0"
+          }`}
+        >
           <MultimodalInput
+            messages={messages}
             input={input}
             setInput={setInput}
-            handleSubmit={handleSubmit}
             isLoading={isLoading}
             stop={stop}
             attachments={attachments}
             setAttachments={setAttachments}
-            messages={messages}
             append={append}
+            handleSubmit={handleSubmit}
           />
         </form>
       </div>
 
-      {/* Threads List Sidebar */}
-      {showThreadsList && (
-        <ThreadsList
-          parentMessageId={showThreadsList.parentMessageId}
-          mainChatId={id}
-          parentMessage={showThreadsList.parentMessage}
-          onClose={handleCloseThreadsList}
-        />
+      {!isThread && activeThread && (
+        <div className="w-1/3 border-l">
+          <ThreadView
+            threadId={activeThread.threadId}
+            parentMessage={activeThread.parentMessage}
+            mainChatId={id}
+            onClose={handleCloseThread}
+            className="h-full"
+          />
+        </div>
       )}
     </div>
   );
