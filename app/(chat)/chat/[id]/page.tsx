@@ -15,10 +15,22 @@ export default async function Page({ params }: { params: any }) {
     notFound();
   }
 
+  // Cast to any to access the properties, then type properly
+  const chatData = chatFromDb as any;
+
+  // Check if this is a thread (has parentMessageId)
+  const isThread = !!chatData.parentMessageId;
+
   // type casting and converting messages to UI messages
   const chat: Chat = {
-    ...chatFromDb,
-    messages: convertToUIMessages(chatFromDb.messages as Array<CoreMessage>),
+    id: chatData._id || chatData.id,
+    messages: convertToUIMessages(chatData.messages as Array<CoreMessage>),
+    userId: chatData.userId,
+    isThread: chatData.isThread || false,
+    parentMessageId: chatData.parentMessageId,
+    mainChatId: chatData.mainChatId,
+    createdAt: chatData.createdAt,
+    updatedAt: chatData.updatedAt,
   };
 
   const session = await auth();
@@ -31,5 +43,13 @@ export default async function Page({ params }: { params: any }) {
     return notFound();
   }
 
-  return <PreviewChat id={chat.id} initialMessages={chat.messages} />;
+  return (
+    <PreviewChat
+      id={chat.id}
+      initialMessages={chat.messages}
+      isThread={isThread}
+      parentMessageId={chatData.parentMessageId}
+      mainChatId={chatData.mainChatId}
+    />
+  );
 }

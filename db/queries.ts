@@ -47,6 +47,9 @@ interface IChat extends Document {
   _id: string;
   messages: Message[];
   userId: string;
+  parentMessageId?: string; // ID of the message this thread is replying to
+  isThread: boolean; // Whether this is a thread or main chat
+  mainChatId?: string; // Reference to the main chat if this is a thread
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +77,9 @@ const chatSchema = new Schema<IChat>(
   {
     messages: { type: Schema.Types.Mixed, required: true },
     userId: { type: String, required: true, ref: "User" },
+    parentMessageId: { type: String }, // ID of the message this thread is replying to
+    isThread: { type: Boolean, default: false }, // Whether this is a thread or main chat
+    mainChatId: { type: String, ref: "Chat" }, // Reference to the main chat if this is a thread
   },
   {
     timestamps: true,
@@ -163,7 +169,14 @@ export async function deleteChatById({ id }: { id: string }) {
 export async function getChatsByUserId({ id }: { id: string }) {
   try {
     await connectToDatabase();
-    return await Chat.find({ userId: id }).sort({ createdAt: -1 }).lean();
+    const chats = await Chat.find({ userId: id })
+      .sort({ createdAt: -1 })
+      .lean();
+    // Transform _id to id for frontend compatibility
+    return chats.map((chat: any) => ({
+      ...chat,
+      id: chat._id.toString(),
+    }));
   } catch (error) {
     console.error("Failed to get chats by user from database");
     throw error;
@@ -174,7 +187,13 @@ export async function getChatById({ id }: { id: string }) {
   try {
     await connectToDatabase();
     const chat = await Chat.findById(id).lean();
-    return chat;
+    if (!chat) return null;
+
+    // Transform _id to id for frontend compatibility
+    return {
+      ...chat,
+      id: chat._id.toString(),
+    };
   } catch (error) {
     console.error("Failed to get chat by id from database");
     return null; // Return null instead of throwing
@@ -220,9 +239,142 @@ export async function updateReservation({
   );
 }
 
+// Thread-related functions
+export async function createThread({
+  id,
+  messages,
+  userId,
+  parentMessageId,
+  mainChatId,
+}: {
+  id: string;
+  messages: any;
+  userId: string;
+  parentMessageId: string;
+  mainChatId: string;
+}) {
+  try {
+    await connectToDatabase();
+    return await Chat.create({
+      _id: id,
+      messages,
+      userId,
+      parentMessageId,
+      isThread: true,
+      mainChatId,
+    });
+  } catch (error) {
+    console.error("Failed to create thread in database");
+    throw error;
+  }
+}
+
+export async function getThreadsByMainChatId({
+  mainChatId,
+}: {
+  mainChatId: string;
+}) {
+  try {
+    await connectToDatabase();
+    const threads = await Chat.find({ mainChatId, isThread: true })
+      .sort({ createdAt: -1 })
+      .lean();
+    // Transform _id to id for frontend compatibility
+    return threads.map((thread: any) => ({
+      ...thread,
+      id: thread._id.toString(),
+    }));
+  } catch (error) {
+    console.error("Failed to get threads by main chat from database");
+    throw error;
+  }
+}
+
+export async function getMainChatMessages({
+  chatId,
+  beforeTimestamp,
+}: {
+  chatId: string;
+  beforeTimestamp?: Date;
+}) {
+  try {
+    await connectToDatabase();
+    const chat = (await Chat.findById(chatId).lean()) as any;
+    if (!chat || chat.isThread) return [];
+
+    // If beforeTimestamp is provided, filter messages
+    if (beforeTimestamp) {
+      return chat.messages.filter(
+        (msg: any) =>
+          new Date(msg.createdAt || msg.timestamp) <= beforeTimestamp
+      );
+    }
+
+    return chat.messages;
+  } catch (error) {
+    console.error("Failed to get main chat messages from database");
+    return [];
+  }
+}
+
+export async function getThreadCountByParentMessage({
+  parentMessageId,
+  mainChatId,
+}: {
+  parentMessageId: string;
+  mainChatId: string;
+}) {
+  try {
+    await connectToDatabase();
+    const count = await Chat.countDocuments({
+      parentMessageId,
+      mainChatId,
+      isThread: true,
+    });
+    return count;
+  } catch (error) {
+    console.error("Failed to get thread count from database");
+    return 0;
+  }
+}
+
+export async function getThreadsByParentMessage({
+  parentMessageId,
+  mainChatId,
+}: {
+  parentMessageId: string;
+  mainChatId: string;
+}) {
+  try {
+    await connectToDatabase();
+    const threads = await Chat.find({
+      parentMessageId,
+      mainChatId,
+      isThread: true,
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+    // Transform _id to id for frontend compatibility
+    return threads.map((thread: any) => ({
+      ...thread,
+      id: thread._id.toString(),
+    }));
+  } catch (error) {
+    console.error("Failed to get threads by parent message from database");
+    return [];
+  }
+}
+
 // Export types for compatibility with existing code
 export type User = IUser;
-export type Chat = Omit<IChat, "messages"> & {
+export type Chat = {
+  id: string;
   messages: Array<Message>;
+  userId: string;
+  parentMessageId?: string;
+  isThread?: boolean;
+  mainChatId?: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 export type Reservation = IReservation;

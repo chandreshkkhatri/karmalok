@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-import { Chat } from "@/db/schema";
+import { Chat } from "@/db/queries";
 import { fetcher, getTitleFromChat } from "@/lib/utils";
 
 import {
@@ -74,7 +74,7 @@ export const History = ({ user }: { user: User | undefined }) => {
       success: () => {
         mutate((history) => {
           if (history) {
-            return history.filter((h) => h.id !== id);
+            return history.filter((h) => h.id !== deleteId);
           }
         });
         return "Chat deleted successfully";
@@ -169,13 +169,13 @@ export const History = ({ user }: { user: User | undefined }) => {
                     key={chat.id}
                     className={cx(
                       "flex flex-row items-center gap-6 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md pr-2",
-                      { "bg-zinc-200 dark:bg-zinc-700": chat.id === id },
+                      { "bg-zinc-200 dark:bg-zinc-700": chat.id === id }
                     )}
                   >
                     <Button
                       variant="ghost"
                       className={cx(
-                        "hover:bg-zinc-200 dark:hover:bg-zinc-700 justify-between p-0 text-sm font-normal flex flex-row items-center gap-2 pr-2 w-full transition-none",
+                        "hover:bg-zinc-200 dark:hover:bg-zinc-700 justify-between p-0 text-sm font-normal flex flex-row items-center gap-2 pr-2 w-full transition-none"
                       )}
                       asChild
                     >

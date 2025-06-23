@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import { BotIcon, UserIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { PreviewAttachment } from "./preview-attachment";
+import { ReplyLink } from "./reply-link";
 import { Weather } from "./weather";
 import { AuthorizePayment } from "../flights/authorize-payment";
 import { DisplayBoardingPass } from "../flights/boarding-pass";
@@ -22,16 +23,24 @@ export const Message = ({
   content,
   toolInvocations,
   attachments,
+  messageId,
+  isThread = false,
+  onStartThread,
+  onViewThread,
 }: {
   chatId: string;
   role: string;
   content: string | ReactNode;
   toolInvocations: Array<ToolInvocation> | undefined;
   attachments?: Array<Attachment>;
+  messageId?: string;
+  isThread?: boolean;
+  onStartThread?: (messageId: string) => void;
+  onViewThread?: (threadId: string) => void;
 }) => {
   return (
     <motion.div
-      className={`flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20`}
+      className={`group flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20`}
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
     >
@@ -110,6 +119,16 @@ export const Message = ({
               <PreviewAttachment key={attachment.url} attachment={attachment} />
             ))}
           </div>
+        )}
+
+        {/* Reply link for assistant messages in main chat */}
+        {role === "assistant" && !isThread && messageId && onStartThread && (
+          <ReplyLink
+            messageId={messageId}
+            chatId={chatId}
+            onStartThread={onStartThread}
+            onViewThread={onViewThread}
+          />
         )}
       </div>
     </motion.div>
