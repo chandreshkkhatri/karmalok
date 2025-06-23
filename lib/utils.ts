@@ -7,8 +7,9 @@ import {
 } from "ai";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import mongoose from "mongoose";
 
-import { Chat } from "@/db/schema";
+import { Chat } from "@/db/queries";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -24,7 +25,7 @@ export const fetcher = async (url: string) => {
 
   if (!res.ok) {
     const error = new Error(
-      "An error occurred while fetching the data.",
+      "An error occurred while fetching the data."
     ) as ApplicationError;
 
     error.info = await res.json();
@@ -44,11 +45,7 @@ export function getLocalStorage(key: string) {
 }
 
 export function generateUUID(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return new mongoose.Types.ObjectId().toString();
 }
 
 function addToolMessageToChat({
@@ -64,7 +61,7 @@ function addToolMessageToChat({
         ...message,
         toolInvocations: message.toolInvocations.map((toolInvocation) => {
           const toolResult = toolMessage.content.find(
-            (tool) => tool.toolCallId === toolInvocation.toolCallId,
+            (tool) => tool.toolCallId === toolInvocation.toolCallId
           );
 
           if (toolResult) {
@@ -85,7 +82,7 @@ function addToolMessageToChat({
 }
 
 export function convertToUIMessages(
-  messages: Array<CoreMessage>,
+  messages: Array<CoreMessage>
 ): Array<Message> {
   return messages.reduce((chatMessages: Array<Message>, message) => {
     if (message.role === "tool") {

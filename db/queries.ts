@@ -177,7 +177,7 @@ export async function getChatById({ id }: { id: string }) {
     return chat;
   } catch (error) {
     console.error("Failed to get chat by id from database");
-    throw error;
+    return null; // Return null instead of throwing
   }
 }
 

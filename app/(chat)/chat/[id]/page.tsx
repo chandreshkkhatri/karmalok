@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
 import { getChatById } from "@/db/queries";
-import { Chat } from "@/db/schema";
+import { Chat } from "@/db/queries";
 import { convertToUIMessages } from "@/lib/utils";
 
 export default async function Page({ params }: { params: any }) {
