@@ -10,7 +10,13 @@ import { user, chat, User, reservation } from "./schema";
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+const connectionString = process.env.POSTGRES_URL!;
+// Use SSL in production only; disable sslmode for local development
+const client = postgres(
+  process.env.NODE_ENV === "production"
+    ? `${connectionString}?sslmode=require`
+    : connectionString
+);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
