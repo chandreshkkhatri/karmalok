@@ -76,9 +76,7 @@ export function Chat({
       } h-full bg-background`}
     >
       <div
-        className={`${
-          activeThread ? "w-2/3" : "w-full"
-        } flex flex-col justify-between items-center gap-4 h-full`}
+        className={`flex flex-1 flex-col justify-between items-center gap-4 h-full min-w-0`}
       >
         <div
           ref={messagesContainerRef}
@@ -129,7 +127,7 @@ export function Chat({
       </div>
 
       {!isThread && activeThread && (
-        <div className="w-1/3 border-l">
+        <div className="w-[400px] flex-shrink-0 border-l">
           <ThreadView
             threadId={activeThread.threadId}
             parentMessage={activeThread.parentMessage}
