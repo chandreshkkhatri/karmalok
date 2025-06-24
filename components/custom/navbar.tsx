@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { auth, signOut } from "@/app/(auth)/auth";
 
-import { History } from "./history";
 import { SlashIcon } from "./icons";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "../ui/button";
@@ -21,7 +20,6 @@ export const Navbar = async () => {
     <>
       <div className="bg-background absolute top-0 left-0 w-dvw py-2 px-3 justify-between flex flex-row items-center z-30">
         <div className="flex flex-row gap-3 items-center">
-          <History user={session?.user} />
           <div className="flex flex-row gap-2 items-center">
             <Image
               src="/images/gemini-logo.png"

@@ -169,9 +169,11 @@ export async function deleteChatById({ id }: { id: string }) {
 export async function getChatsByUserId({ id }: { id: string }) {
   try {
     await connectToDatabase();
-    const chats = await Chat.find({ userId: id })
+    // Only fetch main chats, exclude threads
+    const chats = await Chat.find({ userId: id, isThread: false })
       .sort({ createdAt: -1 })
       .lean();
+
     // Transform _id to id for frontend compatibility
     return chats.map((chat: any) => ({
       ...chat,
@@ -183,7 +185,7 @@ export async function getChatsByUserId({ id }: { id: string }) {
   }
 }
 
-export async function getChatById({ id }: { id: string }) {
+export async function getChatById({ id }: { id: string }): Promise<any | null> {
   try {
     await connectToDatabase();
     const chat = await Chat.findById(id).lean();
@@ -192,7 +194,7 @@ export async function getChatById({ id }: { id: string }) {
     // Transform _id to id for frontend compatibility
     return {
       ...chat,
-      id: chat._id.toString(),
+      id: (chat as any)._id.toString(),
     };
   } catch (error) {
     console.error("Failed to get chat by id from database");
@@ -218,10 +220,25 @@ export async function createReservation({
   });
 }
 
-export async function getReservationById({ id }: { id: string }) {
-  await connectToDatabase();
-  const reservation = await Reservation.findById(id).lean();
-  return reservation;
+export async function getReservationById({
+  id,
+}: {
+  id: string;
+}): Promise<any | null> {
+  try {
+    await connectToDatabase();
+    const reservation = await Reservation.findById(id).lean();
+    if (!reservation) return null;
+
+    // Transform _id to id for frontend compatibility
+    return {
+      ...reservation,
+      id: (reservation as any)._id.toString(),
+    };
+  } catch (error) {
+    console.error("Failed to get reservation by id from database");
+    throw error;
+  }
 }
 
 export async function updateReservation({

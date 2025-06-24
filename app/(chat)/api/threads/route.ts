@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 import { getThreadsByParentMessage, getChatById } from "@/db/queries";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
 
-  if (!session) {
+  if (!session || !session.user || !session.user.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 

@@ -2,16 +2,16 @@
 
 import { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Message as PreviewMessage } from "@/components/custom/message";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
-import { ThreadView } from "./thread-view";
 import { generateUUID } from "@/lib/utils";
 
 import { MultimodalInput } from "./multimodal-input";
 import { Overview } from "./overview";
+import { ThreadView } from "./thread-view";
 
 export function Chat({
   id,
@@ -72,21 +72,17 @@ export function Chat({
   return (
     <div
       className={`flex ${
-        isThread ? "flex-col h-full" : "flex-row pb-4 md:pb-8 h-dvh"
-      } bg-background`}
+        isThread ? "flex-col" : "flex-row"
+      } h-full bg-background`}
     >
       <div
         className={`${
           activeThread ? "w-2/3" : "w-full"
-        } flex flex-col justify-between items-center gap-4 ${
-          isThread ? "h-full" : ""
-        }`}
+        } flex flex-col justify-between items-center gap-4 h-full`}
       >
         <div
           ref={messagesContainerRef}
-          className={`flex flex-col gap-4 h-full ${
-            isThread ? "w-full p-4" : "w-dvw"
-          } items-center overflow-y-scroll`}
+          className={`flex flex-col gap-4 h-full w-full p-4 items-center overflow-y-scroll`}
         >
           {messages.length === 0 && !isThread && <Overview />}
 
@@ -116,11 +112,7 @@ export function Chat({
               experimental_attachments: attachments,
             })
           }
-          className={`flex flex-row gap-2 relative items-end w-full ${
-            isThread
-              ? "px-4 pb-4"
-              : "md:max-w-[500px] max-w-[calc(100dvw-32px)] px-4 md:px-0"
-          }`}
+          className={`flex flex-row gap-2 relative items-end w-full px-4 pb-4 md:max-w-2xl`}
         >
           <MultimodalInput
             messages={messages}

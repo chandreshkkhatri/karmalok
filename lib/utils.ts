@@ -6,8 +6,8 @@ import {
   ToolInvocation,
 } from "ai";
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import mongoose from "mongoose";
+import { twMerge } from "tailwind-merge";
 
 import { Chat } from "@/db/queries";
 
