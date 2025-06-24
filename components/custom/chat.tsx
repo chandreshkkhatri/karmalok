@@ -3,7 +3,7 @@
 import { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -86,47 +86,66 @@ export function Chat({
   }: {
     message: Message;
     showReply?: boolean;
-  }) => (
-    <div className="group flex items-start space-x-3 p-3 hover:bg-gray-50 rounded">
-      <Avatar className="w-8 h-8">
-        <AvatarFallback
-          className={
-            message.role === "user"
-              ? "bg-blue-500 text-white"
-              : "bg-green-500 text-white"
-          }
-        >
-          {message.role === "user" ? "U" : "AI"}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2">
-          <span className="font-semibold text-sm">
-            {message.role === "user" ? "You" : "AI Assistant"}
-          </span>
-          <span className="text-xs text-gray-500">
-            {formatTime(new Date())}
-          </span>
-        </div>
-        <div className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-          {message.content}
-        </div>
-        {showReply && !isThread && (
-          <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStartThread(message.id)}
-              className="h-6 px-2 text-xs"
-            >
-              <MessageSquare className="w-3 h-3 mr-1" />
-              Reply
-            </Button>
+  }) => {
+    // Thread count state
+    const [threadCount, setThreadCount] = useState<number>(0);
+    // Fetch number of replies for this message
+    useEffect(() => {
+      if (!isThread) {
+        fetch(`/api/threads/count?parentMessageId=${message.id}&mainChatId=${id}`)
+          .then((res) => res.json())
+          .then((data) => setThreadCount(data.count || 0))
+          .catch(() => {});
+      }
+    }, [message.id, isThread]);
+
+    return (
+      <div className="group flex items-start space-x-3 p-3 hover:bg-gray-50 rounded">
+        <Avatar className="w-8 h-8">
+          <AvatarFallback
+            className={
+              message.role === "user"
+                ? "bg-blue-500 text-white"
+                : "bg-green-500 text-white"
+            }
+          >
+            {message.role === "user" ? "U" : "AI"}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-sm">
+              {message.role === "user" ? "You" : "AI Assistant"}
+            </span>
+            <span className="text-xs text-gray-500">
+              {formatTime(new Date())}
+            </span>
           </div>
-        )}
+          <div className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+            {message.content}
+          </div>
+          {showReply && !isThread && (
+            <div className="mt-2 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleStartThread(message.id)}
+                className="h-6 px-2 text-xs flex items-center"
+              >
+                <MessageSquare className="w-3 h-3 mr-1" />
+                Reply
+              </Button>
+              {threadCount > 0 && (
+                <span className="text-xs text-gray-600 bg-gray-200 px-1 rounded-full">
+                  {threadCount}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div

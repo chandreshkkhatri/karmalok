@@ -20,14 +20,14 @@ export default async function Page({ params }: { params: any }) {
   // Check if this is a thread (has parentMessageId)
   const isThread = !!chatData.parentMessageId;
 
-  // type casting and converting messages to UI messages
+  // Build the chat object with plain values
   const chat: Chat = {
-    id: chatData._id || chatData.id,
+    id: chatData.id,
     messages: convertToUIMessages(chatData.messages as Array<CoreMessage>),
     userId: chatData.userId,
-    isThread: chatData.isThread || false,
-    parentMessageId: chatData.parentMessageId,
-    mainChatId: chatData.mainChatId,
+    isThread: Boolean(chatData.parentMessageId),
+    parentMessageId: chatData.parentMessageId as string | undefined,
+    mainChatId: chatData.mainChatId as string | undefined,
     createdAt: chatData.createdAt,
     updatedAt: chatData.updatedAt,
   };

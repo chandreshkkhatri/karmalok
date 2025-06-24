@@ -47,9 +47,6 @@ interface IChat extends Document {
   _id: string;
   messages: Message[];
   userId: string;
-  parentMessageId?: string; // ID of the message this thread is replying to
-  isThread: boolean; // Whether this is a thread or main chat
-  mainChatId?: string; // Reference to the main chat if this is a thread
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +56,16 @@ interface IReservation extends Document {
   details: any;
   hasCompletedPayment: boolean;
   userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IThread extends Document {
+  _id: string;
+  messages: Message[];
+  userId: string;
+  parentMessageId: string;
+  mainChatId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -77,9 +84,6 @@ const chatSchema = new Schema<IChat>(
   {
     messages: { type: Schema.Types.Mixed, required: true },
     userId: { type: String, required: true, ref: "User" },
-    parentMessageId: { type: String }, // ID of the message this thread is replying to
-    isThread: { type: Boolean, default: false }, // Whether this is a thread or main chat
-    mainChatId: { type: String, ref: "Chat" }, // Reference to the main chat if this is a thread
   },
   {
     timestamps: true,
@@ -97,11 +101,22 @@ const reservationSchema = new Schema<IReservation>(
   }
 );
 
+const threadSchema = new Schema<IThread>(
+  {
+    messages: { type: Schema.Types.Mixed, required: true },
+    userId: { type: String, required: true, ref: "User" },
+    parentMessageId: { type: String, required: true },
+    mainChatId: { type: String, required: true, ref: "Chat" },
+  },
+  { timestamps: true }
+);
+
 const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 const Chat = mongoose.models.Chat || mongoose.model<IChat>("Chat", chatSchema);
 const Reservation =
   mongoose.models.Reservation ||
   mongoose.model<IReservation>("Reservation", reservationSchema);
+const Thread = mongoose.models.Thread || mongoose.model<IThread>("Thread", threadSchema);
 
 export async function getUser(email: string): Promise<Array<any>> {
   try {
@@ -170,7 +185,7 @@ export async function getChatsByUserId({ id }: { id: string }) {
   try {
     await connectToDatabase();
     // Only fetch main chats, exclude threads
-    const chats = await Chat.find({ userId: id, isThread: false })
+    const chats = await Chat.find({ userId: id })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -199,6 +214,30 @@ export async function getChatById({ id }: { id: string }): Promise<any | null> {
   } catch (error) {
     console.error("Failed to get chat by id from database");
     return null; // Return null instead of throwing
+  }
+}
+
+export async function getMainChatMessages({
+  chatId,
+  beforeTimestamp,
+}: {
+  chatId: string;
+  beforeTimestamp: Date;
+}): Promise<Message[]> {
+  try {
+    await connectToDatabase();
+    const chat = await Chat.findById(chatId).lean();
+    if (!chat) return [];
+
+    const messages = (chat.messages as Message[]).filter((message) => {
+      const messageTimestamp = message.createdAt || (message as any).timestamp;
+      return messageTimestamp && new Date(messageTimestamp) < beforeTimestamp;
+    });
+
+    return messages;
+  } catch (error) {
+    console.error("Failed to get main chat messages from database", error);
+    return [];
   }
 }
 
@@ -272,12 +311,11 @@ export async function createThread({
 }) {
   try {
     await connectToDatabase();
-    return await Chat.create({
+    return await Thread.create({
       _id: id,
       messages,
       userId,
       parentMessageId,
-      isThread: true,
       mainChatId,
     });
   } catch (error) {
@@ -293,10 +331,7 @@ export async function getThreadsByMainChatId({
 }) {
   try {
     await connectToDatabase();
-    const threads = await Chat.find({ mainChatId, isThread: true })
-      .sort({ createdAt: -1 })
-      .lean();
-    // Transform _id to id for frontend compatibility
+    const threads = await Thread.find({ mainChatId }).sort({ createdAt: -1 }).lean();
     return threads.map((thread: any) => ({
       ...thread,
       id: thread._id.toString(),
@@ -304,54 +339,6 @@ export async function getThreadsByMainChatId({
   } catch (error) {
     console.error("Failed to get threads by main chat from database");
     throw error;
-  }
-}
-
-export async function getMainChatMessages({
-  chatId,
-  beforeTimestamp,
-}: {
-  chatId: string;
-  beforeTimestamp?: Date;
-}) {
-  try {
-    await connectToDatabase();
-    const chat = (await Chat.findById(chatId).lean()) as any;
-    if (!chat || chat.isThread) return [];
-
-    // If beforeTimestamp is provided, filter messages
-    if (beforeTimestamp) {
-      return chat.messages.filter(
-        (msg: any) =>
-          new Date(msg.createdAt || msg.timestamp) <= beforeTimestamp
-      );
-    }
-
-    return chat.messages;
-  } catch (error) {
-    console.error("Failed to get main chat messages from database");
-    return [];
-  }
-}
-
-export async function getThreadCountByParentMessage({
-  parentMessageId,
-  mainChatId,
-}: {
-  parentMessageId: string;
-  mainChatId: string;
-}) {
-  try {
-    await connectToDatabase();
-    const count = await Chat.countDocuments({
-      parentMessageId,
-      mainChatId,
-      isThread: true,
-    });
-    return count;
-  } catch (error) {
-    console.error("Failed to get thread count from database");
-    return 0;
   }
 }
 
@@ -364,14 +351,7 @@ export async function getThreadsByParentMessage({
 }) {
   try {
     await connectToDatabase();
-    const threads = await Chat.find({
-      parentMessageId,
-      mainChatId,
-      isThread: true,
-    })
-      .sort({ createdAt: -1 })
-      .lean();
-    // Transform _id to id for frontend compatibility
+    const threads = await Thread.find({ parentMessageId, mainChatId }).sort({ createdAt: -1 }).lean();
     return threads.map((thread: any) => ({
       ...thread,
       id: thread._id.toString(),
@@ -379,6 +359,23 @@ export async function getThreadsByParentMessage({
   } catch (error) {
     console.error("Failed to get threads by parent message from database");
     return [];
+  }
+}
+
+// Count threads for a given parent message
+export async function getThreadCountByParentMessage({
+  parentMessageId,
+  mainChatId,
+}: {
+  parentMessageId: string;
+  mainChatId: string;
+}): Promise<number> {
+  try {
+    await connectToDatabase();
+    return await Thread.countDocuments({ parentMessageId, mainChatId });
+  } catch (error) {
+    console.error("Failed to get thread count from database", error);
+    return 0;
   }
 }
 
