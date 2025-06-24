@@ -70,16 +70,16 @@ export const History = ({ user }: { user: User | undefined }) => {
     });
 
     toast.promise(deletePromise, {
-      loading: "Deleting chat...",
+      loading: "Deleting...",
       success: () => {
         mutate((history) => {
           if (history) {
             return history.filter((h) => h.id !== deleteId);
           }
         });
-        return "Chat deleted successfully";
+        return "Chat deleted.";
       },
-      error: "Failed to delete chat",
+      error: "Error deleting chat.",
     });
 
     setShowDeleteDialog(false);
@@ -95,7 +95,7 @@ export const History = ({ user }: { user: User | undefined }) => {
           <h1 className="text-lg font-semibold text-gray-900">Chats</h1>
           <p className="text-sm text-gray-500">
             {history === undefined
-              ? "Loading..."
+              ? "Loading chats..."
               : `${history.length} conversations`}
           </p>
         </div>
@@ -120,14 +120,14 @@ export const History = ({ user }: { user: User | undefined }) => {
           {!user ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm text-center p-4">
               <InfoIcon size={32} />
-              <p className="mt-2">Login to save and revisit previous chats!</p>
+              <p className="mt-2">Please log in to see your chat history.</p>
             </div>
           ) : null}
 
           {!isLoading && history?.length === 0 && user ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm text-center p-4">
               <InfoIcon size={32} />
-              <p className="mt-2">No chats found</p>
+              <p className="mt-2">You have no saved chats.</p>
             </div>
           ) : null}
 
@@ -201,10 +201,10 @@ export const History = ({ user }: { user: User | undefined }) => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Chat?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              chat and remove it from our servers.
+              This will permanently delete this chat. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
