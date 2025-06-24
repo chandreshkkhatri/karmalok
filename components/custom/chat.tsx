@@ -11,7 +11,6 @@ import { MessageSquare, X, Send, Hash } from "lucide-react";
 
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
-import { generateUUID } from "@/lib/utils";
 
 import { ThreadView } from "./thread-view";
 
@@ -31,20 +30,20 @@ export function Chat({
   className?: string;
 }) {
   const router = useRouter();
+  const chatIdForSubmit = isThread ? mainChatId! : id;
   const { messages, handleSubmit, input, setInput, append, isLoading, stop } =
     useChat({
-      id,
+      id: chatIdForSubmit,
       body: {
-        id,
+        id: chatIdForSubmit,
         ...(isThread && { parentMessageId, mainChatId }),
       },
       initialMessages,
       maxSteps: 10,
       api: isThread ? "/api/thread" : "/api/chat",
       onFinish: () => {
-        const url = isThread
-          ? `/chat/${mainChatId}/thread/${id}`
-          : `/chat/${id}`;
+        // Always stay on the main chat URL after sending
+        const url = `/chat/${chatIdForSubmit}`;
         window.history.replaceState({}, "", url);
       },
     });
@@ -54,15 +53,13 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const [activeThread, setActiveThread] = useState<{
-    threadId: string;
     parentMessage: Message;
   } | null>(null);
 
   const handleStartThread = (messageId: string) => {
     const parentMessage = messages.find((msg) => msg.id === messageId);
     if (parentMessage && !isThread) {
-      const threadId = generateUUID();
-      setActiveThread({ threadId, parentMessage });
+      setActiveThread({ parentMessage });
     }
   };
 
@@ -243,7 +240,6 @@ export function Chat({
       {!isThread && activeThread && (
         <div className="w-96 flex-shrink-0 border-l h-full overflow-hidden">
           <ThreadView
-            threadId={activeThread.threadId}
             parentMessage={activeThread.parentMessage}
             mainChatId={id}
             onClose={handleCloseThread}

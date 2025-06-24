@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
-import { deleteChatById, getChatById, saveChat } from "@/db/queries";
+import { deleteChatById, getChatById, createMessage } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -20,6 +20,16 @@ export async function POST(request: Request) {
     (message) => message.content.length > 0
   );
 
+  // Persist the new user message
+  const lastUserMsg = coreMessages.find((m) => m.role === "user" && m.content);
+  if (lastUserMsg && session.user?.id) {
+    await createMessage({
+      chatId: id,
+      senderId: session.user.id,
+      body: lastUserMsg.content,
+    });
+  }
+
   const result = await streamText({
     model: geminiProModel,
     system: `You are a helpful AI assistant. You can help with various tasks. Today's date is ${new Date().toLocaleDateString()}.`,
@@ -27,13 +37,17 @@ export async function POST(request: Request) {
     onFinish: async ({ responseMessages }) => {
       if (session.user && session.user.id) {
         try {
-          await saveChat({
-            id,
-            messages: [...coreMessages, ...responseMessages],
-            userId: session.user.id,
-          });
+          // Persist AI response messages
+          const chat = await getChatById({ id });
+          for (const msg of responseMessages) {
+            await createMessage({
+              chatId: id,
+              senderId: (chat as any).aiId,
+              body: msg.content,
+            });
+          }
         } catch (error) {
-          console.error("Failed to save chat");
+          console.error("Failed to save AI responses");
         }
       }
     },

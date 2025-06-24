@@ -31,7 +31,7 @@ const userSchema = new Schema<IUser>(
 userSchema.index({ displayName: 1 });
 const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 
-// Chat schema
+// Chat schema (single chat per conversation)
 interface IChat extends Document {
   userId: string;
   aiId: string;
@@ -42,8 +42,8 @@ interface IChat extends Document {
 }
 const chatSchema = new Schema<IChat>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    aiId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, required: true },
+    aiId: { type: Schema.Types.ObjectId, required: true },
     title: { type: String },
     lastMsgAt: { type: Date, default: Date.now, required: true },
   },
@@ -66,12 +66,17 @@ interface IMessage extends Document {
 }
 const messageSchema = new Schema<IMessage>(
   {
-    chatId: { type: Schema.Types.ObjectId, ref: "Chat", required: true },
-    senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    parentMsgId: { type: Schema.Types.ObjectId, ref: "Message", default: null },
+    chatId: { type: Schema.Types.ObjectId, required: true },
+    senderId: { type: Schema.Types.ObjectId, required: true },
+    parentMsgId: { type: Schema.Types.ObjectId, default: null },
     body: { type: String, required: true },
     files: [{ name: String, url: String, mime: String }],
-    reactions: [{ userId: Schema.Types.ObjectId, ref: "User", emoji: String }],
+    reactions: [
+      {
+        userId: { type: Schema.Types.ObjectId, required: true },
+        emoji: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: "editedAt" } }
 );
@@ -105,9 +110,9 @@ export async function getChatsByUserId(userId: string) {
   await connectToDatabase();
   return Chat.find({ userId }).sort({ lastMsgAt: -1 }).lean();
 }
-export async function getChatById(chatId: string) {
+export async function getChatById({ id }: { id: string }) {
   await connectToDatabase();
-  return Chat.findById(chatId).lean();
+  return Chat.findById(id).lean();
 }
 
 // Message functions
@@ -135,6 +140,7 @@ export async function createMessage({
   await Chat.findByIdAndUpdate(chatId, { lastMsgAt: new Date() });
   return message.toObject();
 }
+
 export async function getMessages(chatId: string, limit = 50) {
   await connectToDatabase();
   return Message.find({ chatId, parentMsgId: null })
@@ -142,7 +148,30 @@ export async function getMessages(chatId: string, limit = 50) {
     .limit(limit)
     .lean();
 }
+
 export async function getThreadMessages(parentMsgId: string) {
   await connectToDatabase();
   return Message.find({ parentMsgId }).sort({ createdAt: 1 }).lean();
+}
+
+export async function getThreadCountByParentMessage({
+  parentMessageId,
+}: {
+  parentMessageId: string;
+}) {
+  await connectToDatabase();
+  return Message.countDocuments({ parentMsgId: parentMessageId });
+}
+
+// Helper to fetch a single message (for parent content)
+export async function getMessageById({ id }: { id: string }) {
+  await connectToDatabase();
+  return Message.findById(id).lean();
+}
+
+// Delete a chat and all its messages
+export async function deleteChatById({ id }: { id: string }) {
+  await connectToDatabase();
+  await Message.deleteMany({ chatId: id });
+  return Chat.findByIdAndDelete(id);
 }

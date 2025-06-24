@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { auth } from "@/app/(auth)/auth";
-import { getThreadsByParentMessage, getChatById } from "@/db/queries";
+import { getThreadMessages, getChatById } from "@/db/queries";
 import {
   createUnauthorizedResponse,
   createBadRequestResponse,
@@ -27,14 +27,11 @@ export async function GET(request: NextRequest) {
   try {
     // Verify user has access to the main chat
     const mainChat = await getChatById({ id: mainChatId });
-    if (!mainChat || mainChat.userId !== session.user.id) {
+    if (!mainChat || (mainChat as any).userId !== session.user.id) {
       return createUnauthorizedResponse();
     }
 
-    const threads = await getThreadsByParentMessage({
-      parentMessageId,
-      mainChatId,
-    });
+    const threads = await getThreadMessages(parentMessageId);
 
     return createJsonResponse({ threads });
   } catch (error) {

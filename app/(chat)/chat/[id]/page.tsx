@@ -1,54 +1,31 @@
-import { CoreMessage } from "ai";
 import { notFound } from "next/navigation";
-
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
-import { getChatById, Chat } from "@/db/queries";
+import { getChatById, getMessages } from "@/db/queries";
 import { convertToUIMessages } from "@/lib/utils";
 
 export default async function Page({ params }: { params: any }) {
   const { id } = params;
   const chatFromDb = await getChatById({ id });
 
-  if (!chatFromDb) {
-    notFound();
-  }
+  if (!chatFromDb) notFound();
 
-  // Cast to any to access the properties, then type properly
-  const chatData = chatFromDb as any;
-
-  // Check if this is a thread (has parentMessageId)
-  const isThread = !!chatData.parentMessageId;
-
-  // Build the chat object with plain values
-  const chat: Chat = {
-    id: chatData.id,
-    messages: convertToUIMessages(chatData.messages as Array<CoreMessage>),
-    userId: chatData.userId,
-    isThread: Boolean(chatData.parentMessageId),
-    parentMessageId: chatData.parentMessageId as string | undefined,
-    mainChatId: chatData.mainChatId as string | undefined,
-    createdAt: chatData.createdAt,
-    updatedAt: chatData.updatedAt,
-  };
-
+  // verify access
   const session = await auth();
+  if (!session?.user || session.user.id !== (chatFromDb as any).userId)
+    notFound();
 
-  if (!session || !session.user) {
-    return notFound();
-  }
-
-  if (session.user.id !== chat.userId) {
-    return notFound();
-  }
+  // fetch top-level messages
+  const rawMessages = await getMessages(id);
+  const uiMessages = convertToUIMessages(rawMessages);
+  const isThread = false;
 
   return (
     <PreviewChat
-      id={chat.id}
-      initialMessages={chat.messages}
+      id={id}
+      initialMessages={uiMessages}
       isThread={isThread}
-      parentMessageId={chatData.parentMessageId}
-      mainChatId={chatData.mainChatId}
+      mainChatId={id}
     />
   );
 }

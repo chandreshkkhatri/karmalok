@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Chat } from "./chat";
 import { Message } from "ai";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { convertToUIMessages } from "@/lib/utils";
 
 interface ThreadViewProps {
-  threadId: string;
   parentMessage: Message;
   mainChatId: string;
   onClose: () => void;
@@ -14,13 +14,13 @@ interface ThreadViewProps {
 }
 
 export function ThreadView({
-  threadId,
   parentMessage,
   mainChatId,
   onClose,
   className = "",
 }: ThreadViewProps) {
   const [isParentMessageExpanded, setIsParentMessageExpanded] = useState(true);
+  const [threadMessages, setThreadMessages] = useState<Message[]>([]);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
@@ -29,6 +29,23 @@ export function ThreadView({
       hour12: true,
     });
   };
+
+  // Load existing replies for this thread
+  useEffect(() => {
+    async function loadThread() {
+      try {
+        const res = await fetch(
+          `/api/threads?parentMessageId=${parentMessage.id}&mainChatId=${mainChatId}`
+        );
+        if (!res.ok) return;
+        const { threads } = await res.json();
+        setThreadMessages(convertToUIMessages(threads));
+      } catch {
+        // ignore errors
+      }
+    }
+    loadThread();
+  }, [parentMessage.id, mainChatId]);
 
   return (
     <div
@@ -89,8 +106,8 @@ export function ThreadView({
       {/* Thread Chat */}
       <div className="min-h-0 flex-grow">
         <Chat
-          id={threadId}
-          initialMessages={[]}
+          id={mainChatId}
+          initialMessages={threadMessages}
           isThread={true}
           parentMessageId={parentMessage.id}
           mainChatId={mainChatId}

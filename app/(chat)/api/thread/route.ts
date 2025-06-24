@@ -3,12 +3,7 @@ import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
-import {
-  createThread,
-  saveChat,
-  getChatById,
-  getMainChatMessages,
-} from "@/db/queries";
+import { getChatById, createMessage } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -34,41 +29,40 @@ export async function POST(request: Request) {
     (message) => message.content.length > 0
   );
 
-  // Get the parent message timestamp to filter main chat context
-  const mainChat = await getChatById({ id: mainChatId });
-  const parentMessage = mainChat?.messages.find(
-    (msg: any) => msg.id === parentMessageId
-  );
-  const parentTimestamp = parentMessage?.createdAt || parentMessage?.timestamp;
-
-  // Get main chat messages up to the parent message timestamp
-  let contextMessages: any[] = [];
-  if (parentTimestamp) {
-    const mainChatMessages = await getMainChatMessages({
+  // Persist the user's thread reply
+  if (coreMessages.length > 0) {
+    const userMsg = coreMessages[coreMessages.length - 1];
+    await createMessage({
       chatId: mainChatId,
-      beforeTimestamp: new Date(parentTimestamp),
+      senderId: session.user.id,
+      parentMsgId: parentMessageId,
+      body: userMsg.content,
     });
-    contextMessages = convertToCoreMessages(mainChatMessages).filter(
-      (message) => message.content.length > 0
-    );
   }
 
-  // Combine context from main chat and current thread messages
-  const fullContext = [...contextMessages, ...coreMessages];
+  // Use full main chat context + this thread's messages
+  const fullContext = coreMessages;
 
   const result = await streamText({
     model: geminiProModel,
     system: `You are a helpful AI assistant. You can help with various tasks when requested. Today's date is ${new Date().toLocaleDateString()}.
     
-    IMPORTANT: You are responding in a reply thread. The user is asking a follow-up question about a previous message. The context includes:
-    1. Previous messages from the main conversation (up to the message being replied to)
-    2. Messages in this reply thread
-    
-    Keep your response focused on the specific question in this thread.`,
+    IMPORTANT: You are responding in a reply thread. Only answer based on the user’s follow-up question.`,
     messages: fullContext,
     experimental_telemetry: {
       isEnabled: true,
       functionId: "stream-text-thread",
+    },
+    onFinish: async ({ responseMessages }) => {
+      // Persist AI response(s)
+      for (const msg of responseMessages) {
+        await createMessage({
+          chatId: mainChatId,
+          senderId: (await getChatById({ id: mainChatId })).aiId.toString(),
+          parentMsgId: parentMessageId,
+          body: msg.content,
+        });
+      }
     },
   });
 
