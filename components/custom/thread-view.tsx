@@ -20,8 +20,7 @@ export function ThreadView({
   onClose,
   className = "",
 }: ThreadViewProps) {
-  const [isParentMessageExpanded, setIsParentMessageExpanded] =
-    useState(true);
+  const [isParentMessageExpanded, setIsParentMessageExpanded] = useState(true);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {

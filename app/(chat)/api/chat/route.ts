@@ -3,13 +3,7 @@ import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
-import {
-  createReservation,
-  deleteChatById,
-  getChatById,
-  getReservationById,
-  saveChat,
-} from "@/db/queries";
+import { deleteChatById, getChatById, saveChat } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
 export async function POST(request: Request) {

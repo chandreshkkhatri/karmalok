@@ -51,14 +51,7 @@ interface IChat extends Document {
   updatedAt: Date;
 }
 
-interface IReservation extends Document {
-  _id: string;
-  details: any;
-  hasCompletedPayment: boolean;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Removed IReservation interface - no longer needed for generic chat
 
 interface IThread extends Document {
   _id: string;
@@ -90,16 +83,7 @@ const chatSchema = new Schema<IChat>(
   }
 );
 
-const reservationSchema = new Schema<IReservation>(
-  {
-    details: { type: Schema.Types.Mixed, required: true },
-    hasCompletedPayment: { type: Boolean, required: true, default: false },
-    userId: { type: String, required: true, ref: "User" },
-  },
-  {
-    timestamps: true,
-  }
-);
+// Removed reservation schema - no longer needed for generic chat
 
 const threadSchema = new Schema<IThread>(
   {
@@ -113,10 +97,9 @@ const threadSchema = new Schema<IThread>(
 
 const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 const Chat = mongoose.models.Chat || mongoose.model<IChat>("Chat", chatSchema);
-const Reservation =
-  mongoose.models.Reservation ||
-  mongoose.model<IReservation>("Reservation", reservationSchema);
-const Thread = mongoose.models.Thread || mongoose.model<IThread>("Thread", threadSchema);
+// Removed Reservation model - no longer needed for generic chat
+const Thread =
+  mongoose.models.Thread || mongoose.model<IThread>("Thread", threadSchema);
 
 export async function getUser(email: string): Promise<Array<any>> {
   try {
@@ -241,59 +224,7 @@ export async function getMainChatMessages({
   }
 }
 
-export async function createReservation({
-  id,
-  userId,
-  details,
-}: {
-  id: string;
-  userId: string;
-  details: any;
-}) {
-  await connectToDatabase();
-  return await Reservation.create({
-    _id: id,
-    userId,
-    hasCompletedPayment: false,
-    details,
-  });
-}
-
-export async function getReservationById({
-  id,
-}: {
-  id: string;
-}): Promise<any | null> {
-  try {
-    await connectToDatabase();
-    const reservation = await Reservation.findById(id).lean();
-    if (!reservation) return null;
-
-    // Transform _id to id for frontend compatibility
-    return {
-      ...reservation,
-      id: (reservation as any)._id.toString(),
-    };
-  } catch (error) {
-    console.error("Failed to get reservation by id from database");
-    throw error;
-  }
-}
-
-export async function updateReservation({
-  id,
-  hasCompletedPayment,
-}: {
-  id: string;
-  hasCompletedPayment: boolean;
-}) {
-  await connectToDatabase();
-  return await Reservation.findByIdAndUpdate(
-    id,
-    { hasCompletedPayment },
-    { new: true }
-  );
-}
+// Removed reservation-related functions as they're not needed for generic chat functionality
 
 // Thread-related functions
 export async function createThread({
@@ -331,7 +262,9 @@ export async function getThreadsByMainChatId({
 }) {
   try {
     await connectToDatabase();
-    const threads = await Thread.find({ mainChatId }).sort({ createdAt: -1 }).lean();
+    const threads = await Thread.find({ mainChatId })
+      .sort({ createdAt: -1 })
+      .lean();
     return threads.map((thread: any) => ({
       ...thread,
       id: thread._id.toString(),
@@ -351,7 +284,9 @@ export async function getThreadsByParentMessage({
 }) {
   try {
     await connectToDatabase();
-    const threads = await Thread.find({ parentMessageId, mainChatId }).sort({ createdAt: -1 }).lean();
+    const threads = await Thread.find({ parentMessageId, mainChatId })
+      .sort({ createdAt: -1 })
+      .lean();
     return threads.map((thread: any) => ({
       ...thread,
       id: thread._id.toString(),
@@ -391,4 +326,4 @@ export type Chat = {
   createdAt: Date;
   updatedAt: Date;
 };
-export type Reservation = IReservation;
+// Removed Reservation type export - no longer needed

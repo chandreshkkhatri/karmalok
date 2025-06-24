@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ChevronRight } from "lucide-react";
+import { useThreadCount } from "./use-thread-count";
 
 interface ReplyLinkProps {
   messageId: string;
@@ -15,29 +15,7 @@ export function ReplyLink({
   onStartThread,
   onViewThread,
 }: ReplyLinkProps) {
-  const [threadCount, setThreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchThreadCount = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `/api/threads/count?parentMessageId=${messageId}&mainChatId=${chatId}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setThreadCount(data.count);
-        }
-      } catch (error) {
-        console.error("Failed to fetch thread count:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchThreadCount();
-  }, [messageId, chatId]);
+  const { threadCount, isLoading } = useThreadCount(messageId, chatId);
 
   return (
     <div className="flex items-center gap-2 mt-2">

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, X, Send, Hash } from "lucide-react";
 
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
+import { useThreadCount } from "@/components/custom/use-thread-count";
 import { generateUUID } from "@/lib/utils";
 
 import { ThreadView } from "./thread-view";
@@ -87,17 +88,8 @@ export function Chat({
     message: Message;
     showReply?: boolean;
   }) => {
-    // Thread count state
-    const [threadCount, setThreadCount] = useState<number>(0);
-    // Fetch number of replies for this message
-    useEffect(() => {
-      if (!isThread) {
-        fetch(`/api/threads/count?parentMessageId=${message.id}&mainChatId=${id}`)
-          .then((res) => res.json())
-          .then((data) => setThreadCount(data.count || 0))
-          .catch(() => {});
-      }
-    }, [message.id, isThread]);
+    // Use the custom hook for thread count
+    const { threadCount } = useThreadCount(message.id, id);
 
     return (
       <div className="group flex items-start space-x-3 p-3 hover:bg-gray-50 rounded">
