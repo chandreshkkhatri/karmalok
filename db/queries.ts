@@ -1,329 +1,148 @@
 import "server-only";
-
-import { genSaltSync, hashSync } from "bcrypt-ts";
-import { Message } from "ai";
 import mongoose, { Schema, Document } from "mongoose";
 
-// MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env.local"
-  );
-}
+if (!MONGODB_URI) throw new Error("Define MONGODB_URI in .env.local");
 
 async function connectToDatabase() {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      return mongoose.connection;
-    }
-
-    const opts = {
-      bufferCommands: false,
-    };
-
-    console.log("Connecting to MongoDB...");
-    await mongoose.connect(MONGODB_URI, opts);
-    console.log("MongoDB connected successfully");
-    return mongoose.connection;
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    console.error("Make sure your MONGODB_URI is correct in .env.local");
-    throw error;
-  }
+  if (mongoose.connection.readyState === 1) return mongoose.connection;
+  await mongoose.connect(MONGODB_URI, { bufferCommands: false });
+  return mongoose.connection;
 }
 
-// Schemas and Models
+// User schema
 interface IUser extends Document {
-  _id: string;
   email: string;
-  password?: string;
+  displayName: string;
+  avatarUrl?: string;
+  isBot: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
-
-interface IChat extends Document {
-  _id: string;
-  messages: Message[];
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Removed IReservation interface - no longer needed for generic chat
-
-interface IThread extends Document {
-  _id: string;
-  messages: Message[];
-  userId: string;
-  parentMessageId: string;
-  mainChatId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 const userSchema = new Schema<IUser>(
   {
     email: { type: String, required: true, unique: true },
-    password: { type: String },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const chatSchema = new Schema<IChat>(
-  {
-    messages: { type: Schema.Types.Mixed, required: true },
-    userId: { type: String, required: true, ref: "User" },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-// Removed reservation schema - no longer needed for generic chat
-
-const threadSchema = new Schema<IThread>(
-  {
-    messages: { type: Schema.Types.Mixed, required: true },
-    userId: { type: String, required: true, ref: "User" },
-    parentMessageId: { type: String, required: true },
-    mainChatId: { type: String, required: true, ref: "Chat" },
+    displayName: { type: String, required: true },
+    avatarUrl: { type: String },
+    isBot: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
-
+userSchema.index({ displayName: 1 });
 const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
-const Chat = mongoose.models.Chat || mongoose.model<IChat>("Chat", chatSchema);
-// Removed Reservation model - no longer needed for generic chat
-const Thread =
-  mongoose.models.Thread || mongoose.model<IThread>("Thread", threadSchema);
 
-export async function getUser(email: string): Promise<Array<any>> {
-  try {
-    await connectToDatabase();
-    const users = await User.find({ email }).lean();
-    return users;
-  } catch (error) {
-    console.error("Failed to get user from database");
-    throw error;
-  }
-}
-
-export async function createUser(email: string, password: string) {
-  let salt = genSaltSync(10);
-  let hash = hashSync(password, salt);
-
-  try {
-    await connectToDatabase();
-    return await User.create({ email, password: hash });
-  } catch (error) {
-    console.error("Failed to create user in database");
-    throw error;
-  }
-}
-
-export async function saveChat({
-  id,
-  messages,
-  userId,
-}: {
-  id: string;
-  messages: any;
+// Chat schema
+interface IChat extends Document {
   userId: string;
-}) {
-  try {
-    await connectToDatabase();
-
-    const existingChat = await Chat.findById(id);
-
-    if (existingChat) {
-      return await Chat.findByIdAndUpdate(id, { messages }, { new: true });
-    }
-
-    return await Chat.create({
-      _id: id,
-      messages,
-      userId,
-    });
-  } catch (error) {
-    console.error("Failed to save chat in database");
-    throw error;
-  }
-}
-
-export async function deleteChatById({ id }: { id: string }) {
-  try {
-    await connectToDatabase();
-    return await Chat.findByIdAndDelete(id);
-  } catch (error) {
-    console.error("Failed to delete chat by id from database");
-    throw error;
-  }
-}
-
-export async function getChatsByUserId({ id }: { id: string }) {
-  try {
-    await connectToDatabase();
-    // Only fetch main chats, exclude threads
-    const chats = await Chat.find({ userId: id })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // Transform _id to id for frontend compatibility
-    return chats.map((chat: any) => ({
-      ...chat,
-      id: chat._id.toString(),
-    }));
-  } catch (error) {
-    console.error("Failed to get chats by user from database");
-    throw error;
-  }
-}
-
-export async function getChatById({ id }: { id: string }): Promise<any | null> {
-  try {
-    await connectToDatabase();
-    const chat = await Chat.findById(id).lean();
-    if (!chat) return null;
-
-    // Transform _id to id for frontend compatibility
-    return {
-      ...chat,
-      id: (chat as any)._id.toString(),
-    };
-  } catch (error) {
-    console.error("Failed to get chat by id from database");
-    return null; // Return null instead of throwing
-  }
-}
-
-export async function getMainChatMessages({
-  chatId,
-  beforeTimestamp,
-}: {
-  chatId: string;
-  beforeTimestamp: Date;
-}): Promise<Message[]> {
-  try {
-    await connectToDatabase();
-    const chat = await Chat.findById(chatId).lean();
-    if (!chat) return [];
-
-    const messages = (chat.messages as Message[]).filter((message) => {
-      const messageTimestamp = message.createdAt || (message as any).timestamp;
-      return messageTimestamp && new Date(messageTimestamp) < beforeTimestamp;
-    });
-
-    return messages;
-  } catch (error) {
-    console.error("Failed to get main chat messages from database", error);
-    return [];
-  }
-}
-
-// Removed reservation-related functions as they're not needed for generic chat functionality
-
-// Thread-related functions
-export async function createThread({
-  id,
-  messages,
-  userId,
-  parentMessageId,
-  mainChatId,
-}: {
-  id: string;
-  messages: any;
-  userId: string;
-  parentMessageId: string;
-  mainChatId: string;
-}) {
-  try {
-    await connectToDatabase();
-    return await Thread.create({
-      _id: id,
-      messages,
-      userId,
-      parentMessageId,
-      mainChatId,
-    });
-  } catch (error) {
-    console.error("Failed to create thread in database");
-    throw error;
-  }
-}
-
-export async function getThreadsByMainChatId({
-  mainChatId,
-}: {
-  mainChatId: string;
-}) {
-  try {
-    await connectToDatabase();
-    const threads = await Thread.find({ mainChatId })
-      .sort({ createdAt: -1 })
-      .lean();
-    return threads.map((thread: any) => ({
-      ...thread,
-      id: thread._id.toString(),
-    }));
-  } catch (error) {
-    console.error("Failed to get threads by main chat from database");
-    throw error;
-  }
-}
-
-export async function getThreadsByParentMessage({
-  parentMessageId,
-  mainChatId,
-}: {
-  parentMessageId: string;
-  mainChatId: string;
-}) {
-  try {
-    await connectToDatabase();
-    const threads = await Thread.find({ parentMessageId, mainChatId })
-      .sort({ createdAt: -1 })
-      .lean();
-    return threads.map((thread: any) => ({
-      ...thread,
-      id: thread._id.toString(),
-    }));
-  } catch (error) {
-    console.error("Failed to get threads by parent message from database");
-    return [];
-  }
-}
-
-// Count threads for a given parent message
-export async function getThreadCountByParentMessage({
-  parentMessageId,
-  mainChatId,
-}: {
-  parentMessageId: string;
-  mainChatId: string;
-}): Promise<number> {
-  try {
-    await connectToDatabase();
-    return await Thread.countDocuments({ parentMessageId, mainChatId });
-  } catch (error) {
-    console.error("Failed to get thread count from database", error);
-    return 0;
-  }
-}
-
-// Export types for compatibility with existing code
-export type User = IUser;
-export type Chat = {
-  id: string;
-  messages: Array<Message>;
-  userId: string;
-  parentMessageId?: string;
-  isThread?: boolean;
-  mainChatId?: string;
+  aiId: string;
+  title?: string;
+  lastMsgAt: Date;
   createdAt: Date;
   updatedAt: Date;
-};
-// Removed Reservation type export - no longer needed
+}
+const chatSchema = new Schema<IChat>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    aiId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    title: { type: String },
+    lastMsgAt: { type: Date, default: Date.now, required: true },
+  },
+  { timestamps: true }
+);
+chatSchema.index({ userId: 1, lastMsgAt: -1 });
+chatSchema.index({ lastMsgAt: -1 });
+const Chat = mongoose.models.Chat || mongoose.model<IChat>("Chat", chatSchema);
+
+// Message schema
+interface IMessage extends Document {
+  chatId: string;
+  senderId: string;
+  parentMsgId?: string | null;
+  body: string;
+  files: Array<{ name: string; url: string; mime: string }>;
+  reactions: Array<{ userId: string; emoji: string }>;
+  createdAt: Date;
+  editedAt?: Date;
+}
+const messageSchema = new Schema<IMessage>(
+  {
+    chatId: { type: Schema.Types.ObjectId, ref: "Chat", required: true },
+    senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    parentMsgId: { type: Schema.Types.ObjectId, ref: "Message", default: null },
+    body: { type: String, required: true },
+    files: [{ name: String, url: String, mime: String }],
+    reactions: [{ userId: Schema.Types.ObjectId, ref: "User", emoji: String }],
+  },
+  { timestamps: { createdAt: true, updatedAt: "editedAt" } }
+);
+messageSchema.index({ chatId: 1, createdAt: 1 });
+messageSchema.index({ parentMsgId: 1, createdAt: 1 });
+const Message =
+  mongoose.models.Message || mongoose.model<IMessage>("Message", messageSchema);
+
+// User functions
+export async function createUser(
+  email: string,
+  displayName: string,
+  avatarUrl?: string,
+  isBot = false
+) {
+  await connectToDatabase();
+  return User.create({ email, displayName, avatarUrl, isBot });
+}
+export async function getUserByEmail(email: string) {
+  await connectToDatabase();
+  return User.findOne({ email }).lean();
+}
+
+// Chat functions
+export async function createChat(userId: string, aiId: string, title?: string) {
+  await connectToDatabase();
+  const chat = await Chat.create({ userId, aiId, title });
+  return chat.toObject();
+}
+export async function getChatsByUserId(userId: string) {
+  await connectToDatabase();
+  return Chat.find({ userId }).sort({ lastMsgAt: -1 }).lean();
+}
+export async function getChatById(chatId: string) {
+  await connectToDatabase();
+  return Chat.findById(chatId).lean();
+}
+
+// Message functions
+export async function createMessage({
+  chatId,
+  senderId,
+  parentMsgId = null,
+  body,
+  files = [],
+}: {
+  chatId: string;
+  senderId: string;
+  parentMsgId?: string | null;
+  body: string;
+  files?: Array<{ name: string; url: string; mime: string }>;
+}) {
+  await connectToDatabase();
+  const message = await Message.create({
+    chatId,
+    senderId,
+    parentMsgId,
+    body,
+    files,
+  });
+  await Chat.findByIdAndUpdate(chatId, { lastMsgAt: new Date() });
+  return message.toObject();
+}
+export async function getMessages(chatId: string, limit = 50) {
+  await connectToDatabase();
+  return Message.find({ chatId, parentMsgId: null })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+}
+export async function getThreadMessages(parentMsgId: string) {
+  await connectToDatabase();
+  return Message.find({ parentMsgId }).sort({ createdAt: 1 }).lean();
+}
