@@ -89,102 +89,105 @@ export const History = ({ user }: { user: User | undefined }) => {
     <>
       {/* Remove the toggle button since panel is always open */}
 
-      <div className="p-3 w-80 bg-muted h-full border-r">
-        <div className="text-sm flex flex-row items-center justify-between">
-          <div className="flex flex-row gap-2">
-            <div className="dark:text-zinc-300">History</div>
-
-            <div className="dark:text-zinc-400 text-zinc-500">
-              {history === undefined ? "loading" : history.length} chats
-            </div>
-          </div>
+      <div className="w-64 bg-gray-100 h-full border-r border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <h1 className="text-lg font-semibold text-gray-900">Chats</h1>
+          <p className="text-sm text-gray-500">
+            {history === undefined
+              ? "Loading..."
+              : `${history.length} conversations`}
+          </p>
         </div>
 
-        <div className="mt-10 flex flex-col">
-          {user && (
+        {/* New Chat Button */}
+        {user && (
+          <div className="p-4 border-b border-gray-200">
             <Button
-              className="font-normal text-sm flex flex-row justify-between text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               asChild
             >
               <Link href="/">
-                <div>Start a new chat</div>
                 <PencilEditIcon size={14} />
+                <span className="ml-2">New Chat</span>
               </Link>
             </Button>
-          )}
+          </div>
+        )}
 
-          <div className="flex flex-col overflow-y-scroll p-1 h-[calc(100dvh-124px)]">
-            {!user ? (
-              <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
-                <InfoIcon />
-                <div>Login to save and revisit previous chats!</div>
-              </div>
-            ) : null}
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto p-2">
+          {!user ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm text-center p-4">
+              <InfoIcon size={32} />
+              <p className="mt-2">Login to save and revisit previous chats!</p>
+            </div>
+          ) : null}
 
-            {!isLoading && history?.length === 0 && user ? (
-              <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
-                <InfoIcon />
-                <div>No chats found</div>
-              </div>
-            ) : null}
+          {!isLoading && history?.length === 0 && user ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm text-center p-4">
+              <InfoIcon size={32} />
+              <p className="mt-2">No chats found</p>
+            </div>
+          ) : null}
 
-            {isLoading && user ? (
-              <div className="flex flex-col">
-                {[44, 32, 28, 52].map((item) => (
-                  <div key={item} className="p-2 my-[2px]">
-                    <div
-                      className={`w-${item} h-[20px] rounded-md bg-zinc-200 dark:bg-zinc-600 animate-pulse`}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
+          {isLoading && user ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="p-3 rounded-lg">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
+                </div>
+              ))}
+            </div>
+          ) : null}
 
+          <div className="space-y-1">
             {history &&
               history.map((chat) => (
                 <div
                   key={chat.id}
                   className={cx(
-                    "flex flex-row items-center gap-6 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md pr-2",
-                    { "bg-zinc-200 dark:bg-zinc-700": chat.id === id }
+                    "group flex items-center justify-between p-3 rounded-lg hover:bg-white transition-colors",
+                    { "bg-white shadow-sm": chat.id === id }
                   )}
                 >
                   <Button
                     variant="ghost"
-                    className={cx(
-                      "hover:bg-zinc-200 dark:hover:bg-zinc-700 justify-between p-0 text-sm font-normal flex flex-row items-center gap-2 pr-2 w-full transition-none"
-                    )}
+                    className="flex-1 justify-start p-0 h-auto font-normal text-left"
                     asChild
                   >
-                    <Link
-                      href={`/chat/${chat.id}`}
-                      className="text-ellipsis overflow-hidden text-left py-2 pl-2 rounded-lg outline-zinc-900"
-                    >
-                      {getTitleFromChat(chat)}
+                    <Link href={`/chat/${chat.id}`} className="block truncate">
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {getTitleFromChat(chat)}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(chat.createdAt).toLocaleDateString()}
+                      </div>
                     </Link>
                   </Button>
 
                   <DropdownMenu modal={true}>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        className="p-0 h-fit font-normal text-zinc-500 transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 hover:bg-gray-200"
                         variant="ghost"
                       >
-                        <MoreHorizontalIcon />
+                        <MoreHorizontalIcon size={16} />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent side="left" className="z-[60]">
+                    <DropdownMenuContent side="right" className="z-[60]">
                       <DropdownMenuItem asChild>
                         <Button
-                          className="flex flex-row gap-2 items-center justify-start w-full h-fit font-normal p-1.5 rounded-sm"
+                          className="flex items-center gap-2 w-full justify-start font-normal"
                           variant="ghost"
                           onClick={() => {
                             setDeleteId(chat.id);
                             setShowDeleteDialog(true);
                           }}
                         >
-                          <TrashIcon />
-                          <div>Delete</div>
+                          <TrashIcon size={16} />
+                          Delete
                         </Button>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
