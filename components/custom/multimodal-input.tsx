@@ -21,14 +21,14 @@ import { Textarea } from "../ui/textarea";
 
 const suggestedActions = [
   {
-    title: "Help me book a flight",
-    label: "from San Francisco to London",
-    action: "Help me book a flight from San Francisco to London",
+    title: "Explain a concept",
+    label: "like quantum computing",
+    action: "Explain a concept like quantum computing",
   },
   {
-    title: "What is the status",
-    label: "of flight BA142 flying tmrw?",
-    action: "What is the status of flight BA142 flying tmrw?",
+    title: "Write a story",
+    label: "about a robot who discovers music",
+    action: "Write a story about a robot who discovers music",
   },
 ];
 
@@ -52,13 +52,13 @@ export function MultimodalInput({
   messages: Array<Message>;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,7 +73,9 @@ export function MultimodalInput({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 0}px`;
+      textareaRef.current.style.height = `${
+        textareaRef.current.scrollHeight + 0
+      }px`;
     }
   };
 
@@ -135,7 +137,7 @@ export function MultimodalInput({
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
+          (attachment) => attachment !== undefined
         );
 
         setAttachments((currentAttachments) => [
@@ -148,7 +150,7 @@ export function MultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments],
+    [setAttachments]
   );
 
   return (

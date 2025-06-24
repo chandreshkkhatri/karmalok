@@ -8,14 +8,6 @@ import { BotIcon, UserIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { PreviewAttachment } from "./preview-attachment";
 import { ReplyLink } from "./reply-link";
-import { Weather } from "./weather";
-import { AuthorizePayment } from "../flights/authorize-payment";
-import { DisplayBoardingPass } from "../flights/boarding-pass";
-import { CreateReservation } from "../flights/create-reservation";
-import { FlightStatus } from "../flights/flight-status";
-import { ListFlights } from "../flights/list-flights";
-import { SelectSeats } from "../flights/select-seats";
-import { VerifyPayment } from "../flights/verify-payment";
 
 export const Message = ({
   chatId,
@@ -58,58 +50,21 @@ export const Message = ({
 
         {toolInvocations && (
           <div className="flex flex-col gap-4">
-            {toolInvocations.map((toolInvocation) => {
-              const { toolName, toolCallId, state } = toolInvocation;
-
-              if (state === "result") {
-                const { result } = toolInvocation;
-
-                return (
-                  <div key={toolCallId}>
-                    {toolName === "getWeather" ? (
-                      <Weather weatherAtLocation={result} />
-                    ) : toolName === "displayFlightStatus" ? (
-                      <FlightStatus flightStatus={result} />
-                    ) : toolName === "searchFlights" ? (
-                      <ListFlights chatId={chatId} results={result} />
-                    ) : toolName === "selectSeats" ? (
-                      <SelectSeats chatId={chatId} availability={result} />
-                    ) : toolName === "createReservation" ? (
-                      Object.keys(result).includes("error") ? null : (
-                        <CreateReservation reservation={result} />
-                      )
-                    ) : toolName === "authorizePayment" ? (
-                      <AuthorizePayment intent={result} />
-                    ) : toolName === "displayBoardingPass" ? (
-                      <DisplayBoardingPass boardingPass={result} />
-                    ) : toolName === "verifyPayment" ? (
-                      <VerifyPayment result={result} />
-                    ) : (
-                      <div>{JSON.stringify(result, null, 2)}</div>
-                    )}
-                  </div>
-                );
-              } else {
-                return (
-                  <div key={toolCallId} className="skeleton">
-                    {toolName === "getWeather" ? (
-                      <Weather />
-                    ) : toolName === "displayFlightStatus" ? (
-                      <FlightStatus />
-                    ) : toolName === "searchFlights" ? (
-                      <ListFlights chatId={chatId} />
-                    ) : toolName === "selectSeats" ? (
-                      <SelectSeats chatId={chatId} />
-                    ) : toolName === "createReservation" ? (
-                      <CreateReservation />
-                    ) : toolName === "authorizePayment" ? (
-                      <AuthorizePayment />
-                    ) : toolName === "displayBoardingPass" ? (
-                      <DisplayBoardingPass />
-                    ) : null}
-                  </div>
-                );
-              }
+            {toolInvocations.map((toolInvocation: any) => {
+              const { toolCallId, state } = toolInvocation;
+              const result = toolInvocation.result;
+              return (
+                <div
+                  key={toolCallId}
+                  className={state === "result" ? "" : "skeleton"}
+                >
+                  {state === "result" ? (
+                    <pre>{JSON.stringify(result, null, 2)}</pre>
+                  ) : (
+                    "Loading..."
+                  )}
+                </div>
+              );
             })}
           </div>
         )}
