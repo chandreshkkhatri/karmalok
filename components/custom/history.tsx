@@ -161,9 +161,6 @@ export const History = ({ user }: { user: User | undefined }) => {
                       <div className="text-sm font-medium text-gray-900 truncate">
                         {getTitleFromChat(chat)}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(chat.createdAt).toLocaleDateString()}
-                      </div>
                     </Link>
                   </Button>
 
