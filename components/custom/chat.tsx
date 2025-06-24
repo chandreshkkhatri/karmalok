@@ -160,14 +160,14 @@ export function Chat({
         } ${isThread ? "h-full max-h-full overflow-hidden" : ""}`}
       >
         {/* Header */}
-        <div className="border-b px-4 py-3 bg-white flex-shrink-0">
-          <div className="flex items-center space-x-2">
-            <Hash className="w-4 h-4 text-gray-500" />
-            <h1 className="font-semibold text-lg">
-              {isThread ? "Thread" : "Chat"}
-            </h1>
+        {!isThread && (
+          <div className="border-b px-4 py-3 bg-white flex-shrink-0">
+            <div className="flex items-center space-x-2">
+              <Hash className="w-4 h-4 text-gray-500" />
+              <h1 className="font-semibold text-lg">Chat</h1>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Messages */}
         <div
