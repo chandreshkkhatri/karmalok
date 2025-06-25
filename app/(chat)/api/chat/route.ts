@@ -12,6 +12,8 @@ import {
   createUser,
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
+import { Chat } from "@/db/models";
+import { generateText } from "ai";
 
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
     model: geminiProModel,
     system: `You are a helpful AI assistant. You can help with various tasks. Today's date is ${new Date().toLocaleDateString()}.`,
     messages: coreMessages,
-    onFinish: async ({ responseMessages }) => {
+    onFinish: async ({ usage, token, finishReason, responseMessages }) => {
       // Persist AI response messages
       const currentChat = await getChatById({ id });
       if (currentChat) {
@@ -92,6 +94,18 @@ export async function POST(request: Request) {
             body: toPlainText(msg.content),
           });
         }
+
+        // After the first exchange, generate a title
+        if (messages.length === 1) {
+          const { text: title } = await generateText({
+            model: geminiProModel,
+            prompt: `Summarize the following conversation with a short, descriptive title (less than 5 words):\n\nUser: ${String(
+              lastUserMsg.content
+            )}\nAssistant: ${toPlainText(responseMessages[0].content)}`,
+          });
+
+          await Chat.findByIdAndUpdate(id, { title });
+        }
       }
     },
     experimental_telemetry: {
@@ -101,6 +115,30 @@ export async function POST(request: Request) {
   });
 
   return result.toDataStreamResponse({});
+}
+
+export async function PUT(request: Request) {
+  const { id, title } = await request.json();
+  const session = await auth();
+
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const userId =
+    typeof session.user.id === "object"
+      ? (session.user.id as any).id
+      : session.user.id;
+
+  const chat = await getChatById({ id });
+
+  if (!chat || chat.userId.toString() !== userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  await Chat.findByIdAndUpdate(id, { title });
+
+  return new Response("OK", { status: 200 });
 }
 
 export async function DELETE(request: Request) {

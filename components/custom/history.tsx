@@ -5,12 +5,12 @@ import cx from "classnames";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-import { Chat } from "@/db/queries";
-import { fetcher, getTitleFromChat } from "@/lib/utils";
+import { IChat } from "@/db/models";
+import { fetcher } from "@/lib/utils";
 
 import {
   InfoIcon,
@@ -43,6 +43,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../ui/sheet";
+import { Input } from "../ui/input";
 
 export const History = ({ user }: { user: User | undefined }) => {
   const { id } = useParams();
@@ -53,7 +54,7 @@ export const History = ({ user }: { user: User | undefined }) => {
     data: history,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(user ? "/api/history" : null, fetcher, {
+  } = useSWR<Array<IChat>>(user ? "/api/history" : null, fetcher, {
     fallbackData: [],
   });
 
@@ -63,6 +64,49 @@ export const History = ({ user }: { user: User | undefined }) => {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleEditClick = (chat: IChat) => {
+    setEditingChatId(chat._id.toString());
+    setEditingTitle(chat.title || "");
+  };
+
+  useEffect(() => {
+    if (editingChatId && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingChatId]);
+
+  const handleTitleUpdate = async () => {
+    if (!editingChatId || !editingTitle) {
+      setEditingChatId(null);
+      return;
+    }
+
+    mutate(
+      (history) =>
+        history?.map((c) =>
+          c._id.toString() === editingChatId ? { ...c, title: editingTitle } : c
+        ),
+      false
+    );
+
+    const updatePromise = fetch(`/api/chat`, {
+      method: "PUT",
+      body: JSON.stringify({ id: editingChatId, title: editingTitle }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    toast.promise(updatePromise, {
+      loading: "Saving...",
+      success: "Title saved.",
+      error: "Error saving title.",
+    });
+
+    setEditingChatId(null);
+  };
 
   const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
@@ -74,7 +118,7 @@ export const History = ({ user }: { user: User | undefined }) => {
       success: () => {
         mutate((history) => {
           if (history) {
-            return history.filter((h) => h.id !== deleteId);
+            return history.filter((h) => h._id.toString() !== deleteId);
           }
         });
         return "Chat deleted.";
@@ -146,23 +190,40 @@ export const History = ({ user }: { user: User | undefined }) => {
             {history &&
               history.map((chat) => (
                 <div
-                  key={chat.id}
+                  key={chat._id.toString()}
                   className={cx(
                     "group flex items-center justify-between p-3 rounded-lg hover:bg-white transition-colors",
-                    { "bg-white shadow-sm": chat.id === id }
+                    { "bg-white shadow-sm": chat._id.toString() === id }
                   )}
                 >
-                  <Button
-                    variant="ghost"
-                    className="flex-1 justify-start p-0 h-auto font-normal text-left"
-                    asChild
-                  >
-                    <Link href={`/chat/${chat.id}`} className="block truncate">
-                      <div className="text-sm font-medium text-gray-900 truncate">
-                        {getTitleFromChat(chat)}
-                      </div>
-                    </Link>
-                  </Button>
+                  {editingChatId === chat._id.toString() ? (
+                    <Input
+                      ref={inputRef}
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={handleTitleUpdate}
+                      onKeyDown={(e) => e.key === "Enter" && handleTitleUpdate()}
+                      className="h-8 text-sm"
+                    />
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        className="flex-1 justify-start p-0 h-auto font-normal text-left"
+                        asChild
+                      >
+                        <Link
+                          href={`/chat/${chat._id.toString()}`}
+                          className="block truncate"
+                          title={chat.title || "Untitled Chat"}
+                        >
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {chat.title || "Untitled Chat"}
+                          </div>
+                        </Link>
+                      </Button>
+                    </>
+                  )}
 
                   <DropdownMenu modal={true}>
                     <DropdownMenuTrigger asChild>
@@ -178,8 +239,18 @@ export const History = ({ user }: { user: User | undefined }) => {
                         <Button
                           className="flex items-center gap-2 w-full justify-start font-normal"
                           variant="ghost"
+                          onClick={() => handleEditClick(chat)}
+                        >
+                          <PencilEditIcon size={16} />
+                          Edit
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Button
+                          className="flex items-center gap-2 w-full justify-start font-normal"
+                          variant="ghost"
                           onClick={() => {
-                            setDeleteId(chat.id);
+                            setDeleteId(chat._id.toString());
                             setShowDeleteDialog(true);
                           }}
                         >
