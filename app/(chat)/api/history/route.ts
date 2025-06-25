@@ -1,5 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { getChatsByUserId } from "@/db/queries";
+import { getSessionUserId } from "@/lib/get-session-user-id";
 
 export async function GET() {
   const session = await auth();
@@ -8,12 +9,7 @@ export async function GET() {
     return Response.json("Unauthorized!", { status: 401 });
   }
 
-  // Extract the actual ID string from the user object
-  const userId =
-    typeof session.user.id === "object"
-      ? (session.user.id as any).id
-      : session.user.id;
-
+  const userId = getSessionUserId(session);
   if (!userId) {
     return Response.json("User ID not found", { status: 400 });
   }

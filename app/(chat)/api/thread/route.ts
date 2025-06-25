@@ -7,6 +7,7 @@ import { getChatById, createMessage } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 import { Message as DbMessage, Chat } from "@/db/models";
 import { ensureConnection } from "@/db/connection";
+import { getSessionUserId } from "@/lib/get-session-user-id";
 
 export async function POST(request: Request) {
   const {
@@ -36,10 +37,7 @@ export async function POST(request: Request) {
     const userMsg = coreMessages[coreMessages.length - 1];
 
     // Extract the actual ID string from the user object
-    const userId =
-      typeof session.user.id === "object"
-        ? (session.user.id as any).id
-        : session.user.id;
+    const userId = getSessionUserId(session)!;
 
     const toPlainText = (content: any): string => {
       if (typeof content === "string") return content;

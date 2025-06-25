@@ -12,6 +12,7 @@ import {
   createUser,
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
+import { getSessionUserId } from "@/lib/get-session-user-id";
 import { Chat } from "@/db/models";
 import { generateText } from "ai";
 import { ensureConnection } from "@/db/connection";
@@ -30,11 +31,7 @@ export async function POST(request: Request) {
     (message) => message.content.length > 0
   );
 
-  // Extract the actual ID string from the user object
-  const userId =
-    typeof session.user.id === "object"
-      ? (session.user.id as any).id
-      : session.user?.id;
+  const userId = getSessionUserId(session);
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
@@ -139,10 +136,7 @@ export async function PUT(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const userId =
-    typeof session.user.id === "object"
-      ? (session.user.id as any).id
-      : session.user.id;
+  const userId = getSessionUserId(session);
 
   const chat = await getChatById({ id });
 
@@ -177,11 +171,7 @@ export async function DELETE(request: Request) {
       return new Response("Chat not found", { status: 404 });
     }
 
-    // Extract the actual ID string from the user object
-    const userId =
-      typeof session.user.id === "object"
-        ? (session.user.id as any).id
-        : session.user.id;
+    const userId = getSessionUserId(session);
 
     if ((chat as any).userId.toString() !== userId) {
       return new Response("Unauthorized", { status: 401 });
