@@ -32,9 +32,16 @@ export async function POST(request: Request) {
   // Persist the user's thread reply
   if (coreMessages.length > 0) {
     const userMsg = coreMessages[coreMessages.length - 1];
+
+    // Extract the actual ID string from the user object
+    const userId =
+      typeof session.user.id === "object"
+        ? (session.user.id as any).id
+        : session.user.id;
+
     await createMessage({
       chatId: mainChatId,
-      senderId: session.user.id,
+      senderId: userId,
       parentMsgId: parentMessageId,
       body: userMsg.content,
     });

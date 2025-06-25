@@ -9,7 +9,7 @@ import { clsx, type ClassValue } from "clsx";
 import mongoose from "mongoose";
 import { twMerge } from "tailwind-merge";
 
-import { Chat } from "@/db/queries";
+import { IChat, IMessage } from "@/db/models";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -123,13 +123,12 @@ export function convertToUIMessages(
   }, []);
 }
 
-export function getTitleFromChat(chat: Chat) {
-  const messages = convertToUIMessages(chat.messages as Array<CoreMessage>);
-  const firstMessage = messages[0];
+export function getTitleFromChat(chat: IChat & { messages: IMessage[] }) {
+  const firstMessage = chat.messages?.[0];
 
   if (!firstMessage) {
     return "Untitled";
   }
 
-  return firstMessage.content;
+  return firstMessage.body;
 }

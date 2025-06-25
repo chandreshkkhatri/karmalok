@@ -12,7 +12,17 @@ import {
 export async function GET(request: NextRequest) {
   const session = await auth();
 
-  if (!session || !session.user || !session.user.id) {
+  if (!session || !session.user) {
+    return createUnauthorizedResponse();
+  }
+
+  // Extract the actual ID string from the user object
+  const userId =
+    typeof session.user.id === "object"
+      ? (session.user.id as any).id
+      : session.user.id;
+
+  if (!userId) {
     return createUnauthorizedResponse();
   }
 
@@ -27,7 +37,7 @@ export async function GET(request: NextRequest) {
   try {
     // Verify user has access to the main chat
     const mainChat = await getChatById({ id: mainChatId });
-    if (!mainChat || (mainChat as any).userId !== session.user.id) {
+    if (!mainChat || (mainChat as any).userId.toString() !== userId) {
       return createUnauthorizedResponse();
     }
 

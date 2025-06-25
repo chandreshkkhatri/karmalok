@@ -22,10 +22,17 @@ export async function POST(request: Request) {
 
   // Persist the new user message
   const lastUserMsg = coreMessages.find((m) => m.role === "user" && m.content);
-  if (lastUserMsg && session.user?.id) {
+
+  // Extract the actual ID string from the user object
+  const userId =
+    typeof session.user?.id === "object"
+      ? (session.user.id as any).id
+      : session.user?.id;
+
+  if (lastUserMsg && userId) {
     await createMessage({
       chatId: id,
-      senderId: session.user.id,
+      senderId: userId,
       body: lastUserMsg.content,
     });
   }
@@ -35,7 +42,13 @@ export async function POST(request: Request) {
     system: `You are a helpful AI assistant. You can help with various tasks. Today's date is ${new Date().toLocaleDateString()}.`,
     messages: coreMessages,
     onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
+      // Extract the actual ID string from the user object
+      const userId =
+        typeof session.user?.id === "object"
+          ? (session.user.id as any).id
+          : session.user?.id;
+
+      if (session.user && userId) {
         try {
           // Persist AI response messages
           const chat = await getChatById({ id });
@@ -81,7 +94,13 @@ export async function DELETE(request: Request) {
       return new Response("Chat not found", { status: 404 });
     }
 
-    if (chat.userId !== session.user.id) {
+    // Extract the actual ID string from the user object
+    const userId =
+      typeof session.user.id === "object"
+        ? (session.user.id as any).id
+        : session.user.id;
+
+    if ((chat as any).userId.toString() !== userId) {
       return new Response("Unauthorized", { status: 401 });
     }
 

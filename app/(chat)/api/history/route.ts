@@ -8,6 +8,16 @@ export async function GET() {
     return Response.json("Unauthorized!", { status: 401 });
   }
 
-  const chats = await getChatsByUserId({ id: session.user.id! });
+  // Extract the actual ID string from the user object
+  const userId =
+    typeof session.user.id === "object"
+      ? (session.user.id as any).id
+      : session.user.id;
+
+  if (!userId) {
+    return Response.json("User ID not found", { status: 400 });
+  }
+
+  const chats = await getChatsByUserId(userId);
   return Response.json(chats);
 }

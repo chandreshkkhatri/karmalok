@@ -25,7 +25,13 @@ export default async function ThreadPage({
   // First check if the main chat exists and user has access
   const mainChat = await getChatById({ id: mainChatId });
 
-  if (!mainChat || session.user.id !== (mainChat as any).userId) {
+  // Extract the actual ID string from the user object
+  const userId =
+    typeof session.user.id === "object"
+      ? (session.user.id as any).id
+      : session.user.id;
+
+  if (!mainChat || userId !== (mainChat as any).userId.toString()) {
     return notFound();
   }
 
@@ -37,7 +43,7 @@ export default async function ThreadPage({
     threadChat = {
       id: threadId,
       messages: [],
-      userId: session.user.id,
+      userId: userId,
       parentMessageId,
       isThread: true,
       mainChatId,
