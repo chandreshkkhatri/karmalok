@@ -69,7 +69,7 @@ export const History = ({ user }: { user: User | undefined }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleEditClick = (chat: IChat) => {
-    setEditingChatId(chat._id.toString());
+    setEditingChatId((chat as any)._id.toString());
     setEditingTitle(chat.title || "");
   };
 
@@ -88,8 +88,8 @@ export const History = ({ user }: { user: User | undefined }) => {
     mutate(
       (history) =>
         history?.map((c) =>
-          c._id.toString() === editingChatId ? { ...c, title: editingTitle } : c
-        ),
+          (c as any)._id.toString() === editingChatId ? { ...c, title: editingTitle } : c
+        ) as IChat[],
       false
     );
 
@@ -114,18 +114,19 @@ export const History = ({ user }: { user: User | undefined }) => {
     });
 
     toast.promise(deletePromise, {
-      loading: "Deleting...",
+      loading: "Deleting chat...",
       success: () => {
         mutate((history) => {
           if (history) {
-            return history.filter((h) => h._id.toString() !== deleteId);
+            return history.filter((h) => (h as any)._id.toString() !== deleteId);
           }
         });
         return "Chat deleted.";
       },
-      error: "Error deleting chat.",
+      error: "Failed to delete chat.",
     });
 
+    setDeleteId(null);
     setShowDeleteDialog(false);
   };
 
@@ -190,13 +191,13 @@ export const History = ({ user }: { user: User | undefined }) => {
             {history &&
               history.map((chat) => (
                 <div
-                  key={chat._id.toString()}
+                  key={(chat as any)._id.toString()}
                   className={cx(
                     "group flex items-center justify-between p-3 rounded-lg hover:bg-white transition-colors",
-                    { "bg-white shadow-sm": chat._id.toString() === id }
+                    { "bg-white shadow-sm": (chat as any)._id.toString() === id }
                   )}
                 >
-                  {editingChatId === chat._id.toString() ? (
+                  {editingChatId === (chat as any)._id.toString() ? (
                     <Input
                       ref={inputRef}
                       value={editingTitle}
@@ -213,7 +214,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                         asChild
                       >
                         <Link
-                          href={`/chat/${chat._id.toString()}`}
+                          href={`/chat/${(chat as any)._id.toString()}`}
                           className="block truncate"
                           title={chat.title || "Untitled Chat"}
                         >
@@ -228,10 +229,11 @@ export const History = ({ user }: { user: User | undefined }) => {
                   <DropdownMenu modal={true}>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 hover:bg-gray-200"
                         variant="ghost"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100"
                       >
                         <MoreHorizontalIcon size={16} />
+                        <VisuallyHidden.Root>Dropdown Menu</VisuallyHidden.Root>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" className="z-[60]">
@@ -250,7 +252,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                           className="flex items-center gap-2 w-full justify-start font-normal"
                           variant="ghost"
                           onClick={() => {
-                            setDeleteId(chat._id.toString());
+                            setDeleteId((chat as any)._id.toString());
                             setShowDeleteDialog(true);
                           }}
                         >

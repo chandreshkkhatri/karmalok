@@ -4,6 +4,9 @@ import { User, Chat, Message } from "./models";
 
 connectToDatabase();
 
+// Re-export types for external use
+export { Chat } from "./models";
+
 // User functions
 export async function createUser(
   email: string,
@@ -52,8 +55,8 @@ export async function getChatsByUserId(userId: string) {
 }
 export async function getChatById({ id }: { id: string }) {
   const chat = await Chat.findById(id).lean();
-  if (chat) {
-    return { ...chat, id: chat._id.toString() } as any;
+  if (chat && !Array.isArray(chat)) {
+    return { ...chat, id: (chat as any)._id.toString() } as any;
   }
   return chat;
 }
