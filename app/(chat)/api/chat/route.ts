@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     model: geminiProModel,
     system: `You are a helpful AI assistant. You can help with various tasks. Today's date is ${new Date().toLocaleDateString()}.`,
     messages: coreMessages,
-    onFinish: async ({ usage, token, finishReason, responseMessages }) => {
+    onFinish: async ({ usage, finishReason, responseMessages }) => {
       // Persist AI response messages
       const currentChat = await getChatById({ id });
       if (currentChat) {
