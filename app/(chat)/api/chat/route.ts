@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   const session = await auth();
 
-  if (!session) {
+  if (!session || !session.user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   // Extract the actual ID string from the user object
   const userId =
-    typeof session.user?.id === "object"
+    typeof session.user.id === "object"
       ? (session.user.id as any).id
       : session.user?.id;
 
@@ -50,14 +50,26 @@ export async function POST(request: Request) {
     let aiUser = await getUserByEmail("ai@assistant.local");
 
     if (!aiUser) {
-      aiUser = await createUser("ai@assistant.local", "AI Assistant", undefined, true);
+      aiUser = await createUser(
+        "ai@assistant.local",
+        "AI Assistant",
+        undefined,
+        true
+      );
     }
 
-    chat = await createChat(userId, (aiUser as any)._id.toString(), "New Chat", id);
+    chat = await createChat(
+      userId,
+      (aiUser as any)._id.toString(),
+      "New Chat",
+      id
+    );
   }
 
   // Persist the latest user message (the last user role in the array)
-  const userMessages = coreMessages.filter((m) => m.role === "user" && m.content);
+  const userMessages = coreMessages.filter(
+    (m) => m.role === "user" && m.content
+  );
   const lastUserMsg = userMessages[userMessages.length - 1];
 
   if (lastUserMsg) {
