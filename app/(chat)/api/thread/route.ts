@@ -5,6 +5,7 @@ import { geminiProModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
 import { getChatById, createMessage } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
+import { Message as DbMessage, Chat } from "@/db/models";
 
 export async function POST(request: Request) {
   const {
@@ -47,8 +48,43 @@ export async function POST(request: Request) {
     });
   }
 
-  // Use full main chat context + this thread's messages
-  const fullContext = coreMessages;
+  // Build extended context: up to four messages before the parent + the parent message itself + the entire thread conversation
+
+  const chatDoc = await getChatById({ id: mainChatId });
+
+  let additionalContext: Array<Message> = [];
+
+  if (chatDoc) {
+    const aiId = (chatDoc as any).aiId?.toString();
+
+    // Fetch the parent message (top-level)
+    const parentDbMsg = await DbMessage.findById(parentMessageId).lean();
+
+    if (parentDbMsg) {
+      // Fetch up to 4 previous top-level messages that occurred before the parent message
+      const prevDbMsgs = await DbMessage.find({
+        chatId: mainChatId,
+        parentMsgId: null,
+        createdAt: { $lt: parentDbMsg.createdAt },
+      })
+        .sort({ createdAt: -1 })
+        .limit(4)
+        .lean();
+
+      const toCore = (m: any): Message => ({
+        role: m.senderId.toString() === aiId ? "assistant" : "user",
+        content: m.body,
+      });
+
+      // Reverse prev messages back to chronological order then map
+      additionalContext = [
+        ...prevDbMsgs.reverse().map(toCore),
+        toCore(parentDbMsg),
+      ];
+    }
+  }
+
+  const fullContext = [...additionalContext, ...coreMessages];
 
   const result = await streamText({
     model: geminiProModel,
