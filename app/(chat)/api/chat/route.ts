@@ -3,7 +3,14 @@ import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
-import { deleteChatById, getChatById, createMessage } from "@/db/queries";
+import {
+  deleteChatById,
+  getChatById,
+  createMessage,
+  createChat,
+  getUserByEmail,
+  createUser,
+} from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -20,20 +27,42 @@ export async function POST(request: Request) {
     (message) => message.content.length > 0
   );
 
-  // Persist the new user message
-  const lastUserMsg = coreMessages.find((m) => m.role === "user" && m.content);
-
   // Extract the actual ID string from the user object
   const userId =
     typeof session.user?.id === "object"
       ? (session.user.id as any).id
       : session.user?.id;
 
-  if (lastUserMsg && userId) {
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  /**
+   * Ensure that a Chat document exists for this conversation.
+   * We use the client-generated id so that front-end routing continues to work.
+   */
+  let chat = await getChatById({ id });
+
+  if (!chat) {
+    // Find or create the single AI user that represents the assistant
+    let aiUser = await getUserByEmail("ai@assistant.local");
+
+    if (!aiUser) {
+      aiUser = await createUser("ai@assistant.local", "AI Assistant", undefined, true);
+    }
+
+    chat = await createChat(userId, (aiUser as any)._id.toString(), "New Chat", id);
+  }
+
+  // Persist the latest user message (the last user role in the array)
+  const userMessages = coreMessages.filter((m) => m.role === "user" && m.content);
+  const lastUserMsg = userMessages[userMessages.length - 1];
+
+  if (lastUserMsg) {
     await createMessage({
       chatId: id,
       senderId: userId,
-      body: lastUserMsg.content,
+      body: String(lastUserMsg.content),
     });
   }
 
@@ -42,25 +71,15 @@ export async function POST(request: Request) {
     system: `You are a helpful AI assistant. You can help with various tasks. Today's date is ${new Date().toLocaleDateString()}.`,
     messages: coreMessages,
     onFinish: async ({ responseMessages }) => {
-      // Extract the actual ID string from the user object
-      const userId =
-        typeof session.user?.id === "object"
-          ? (session.user.id as any).id
-          : session.user?.id;
-
-      if (session.user && userId) {
-        try {
-          // Persist AI response messages
-          const chat = await getChatById({ id });
-          for (const msg of responseMessages) {
-            await createMessage({
-              chatId: id,
-              senderId: (chat as any).aiId,
-              body: msg.content,
-            });
-          }
-        } catch (error) {
-          console.error("Failed to save AI responses");
+      // Persist AI response messages
+      const currentChat = await getChatById({ id });
+      if (currentChat) {
+        for (const msg of responseMessages) {
+          await createMessage({
+            chatId: id,
+            senderId: (currentChat as any).aiId,
+            body: String(msg.content),
+          });
         }
       }
     },

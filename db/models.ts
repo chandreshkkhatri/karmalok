@@ -24,8 +24,8 @@ export const User =
 
 // Chat schema (single chat per conversation)
 export interface IChat extends Document {
-  userId: string;
-  aiId: string;
+  userId: mongoose.Types.ObjectId | string;
+  aiId: mongoose.Types.ObjectId | string;
   title?: string;
   lastMsgAt: Date;
   createdAt: Date;
@@ -48,8 +48,8 @@ export const Chat =
 
 // Message schema
 export interface IMessage extends Document {
-  chatId: string;
-  senderId: string;
+  chatId: mongoose.Types.ObjectId | string;
+  senderId: mongoose.Types.ObjectId | string;
   parentMsgId?: string | null;
   body: string;
   files: Array<{ name: string; url: string; mime: string }>;
@@ -61,7 +61,7 @@ const messageSchema = new Schema<IMessage>(
   {
     chatId: { type: Schema.Types.ObjectId, required: true },
     senderId: { type: Schema.Types.ObjectId, required: true },
-    parentMsgId: { type: Schema.Types.ObjectId, default: null },
+    parentMsgId: { type: String, default: null },
     body: { type: String, required: true },
     files: [{ name: String, url: String, mime: String }],
     reactions: [

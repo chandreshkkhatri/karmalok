@@ -21,13 +21,15 @@ export const Navbar = async () => {
       <div className="bg-background absolute top-0 left-0 w-dvw py-2 px-3 justify-between flex flex-row items-center z-30 border-b border-gray-200">
         <div className="flex flex-row gap-3 items-center">
           <div className="flex flex-row gap-2 items-center">
-            <Image
-              src="/images/restackapp-logo.png"
-              height={100}
-              width={100}
-              alt="Restack App logo"
-              className="h-12 w-auto"
-            />
+            <Link href="/" className="flex items-center" prefetch={false}>
+              <Image
+                src="/images/restackapp-logo.png"
+                height={100}
+                width={100}
+                alt="Restack App logo"
+                className="h-12 w-auto"
+              />
+            </Link>
             {/* <div className="text-zinc-500">
               <SlashIcon size={16} />
             </div>

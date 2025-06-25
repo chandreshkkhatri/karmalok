@@ -18,15 +18,44 @@ export async function getUserByEmail(email: string) {
 }
 
 // Chat functions
-export async function createChat(userId: string, aiId: string, title?: string) {
-  const chat = await Chat.create({ userId, aiId, title });
+export async function createChat(
+  userId: string,
+  aiId: string,
+  title?: string,
+  chatId?: string
+) {
+  const chatData: any = { userId, aiId };
+
+  if (title) {
+    chatData.title = title;
+  }
+
+  // Allow the caller to specify the _id so that the client-generated id and
+  // the MongoDB document id stay in sync.
+  if (chatId) {
+    chatData._id = chatId;
+  }
+
+  const chat = await Chat.create(chatData);
   return chat.toObject();
 }
 export async function getChatsByUserId(userId: string) {
-  return Chat.find({ userId }).sort({ lastMsgAt: -1 }).lean();
+  const chats = await Chat.find({ userId })
+    .sort({ lastMsgAt: -1 })
+    .lean();
+
+  // Ensure each chat has an `id` field (lean documents don\'t include the virtual by default)
+  return chats.map((chat: any) => ({
+    ...chat,
+    id: chat._id.toString(),
+  }));
 }
 export async function getChatById({ id }: { id: string }) {
-  return Chat.findById(id).lean();
+  const chat = await Chat.findById(id).lean();
+  if (chat) {
+    return { ...chat, id: chat._id.toString() } as any;
+  }
+  return chat;
 }
 
 // Message functions

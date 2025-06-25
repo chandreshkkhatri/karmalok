@@ -9,7 +9,10 @@ export function useThreadCount(messageId: string, chatId: string) {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `/api/threads/count?parentMessageId=${messageId}&mainChatId=${chatId}`
+          `/api/threads/count?parentMessageId=${messageId}&mainChatId=${chatId}`,
+          {
+            credentials: "include",
+          }
         );
         if (response.ok) {
           const data = await response.json();
