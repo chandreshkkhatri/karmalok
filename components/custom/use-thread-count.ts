@@ -1,32 +1,36 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { credentials: "include" });
+
+  if (!res.ok) {
+    const error = new Error("Failed to fetch thread count");
+    try {
+      (error as any).info = await res.json();
+    } catch (e) {
+      // res.json() will fail if the body is not valid JSON.
+    }
+    (error as any).status = res.status;
+    throw error;
+  }
+
+  const data = await res.json();
+  return data.count || 0;
+};
 
 export function useThreadCount(messageId: string, chatId: string) {
-  const [threadCount, setThreadCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    data: threadCount,
+    isLoading,
+    mutate,
+  } = useSWR(
+    `/api/threads/count?parentMessageId=${messageId}&mainChatId=${chatId}`,
+    fetcher,
+    {
+      fallbackData: 0,
+      revalidateOnFocus: false,
+    }
+  );
 
-  useEffect(() => {
-    const fetchThreadCount = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `/api/threads/count?parentMessageId=${messageId}&mainChatId=${chatId}`,
-          {
-            credentials: "include",
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setThreadCount(data.count || 0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch thread count:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchThreadCount();
-  }, [messageId, chatId]);
-
-  return { threadCount, isLoading };
+  return { threadCount: threadCount ?? 0, isLoading, refresh: mutate };
 }

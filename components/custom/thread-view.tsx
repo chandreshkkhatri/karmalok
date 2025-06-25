@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Chat } from "./chat";
 import { Message } from "ai";
 import { useState, useEffect } from "react";
+import { mutate as revalidateSWR } from "swr";
 
 interface ThreadViewProps {
   parentMessage: Message;
@@ -27,6 +28,12 @@ export function ThreadView({
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const handleNewReply = () => {
+    revalidateSWR(
+      `/api/threads/count?parentMessageId=${parentMessage.id}&mainChatId=${mainChatId}`
+    );
   };
 
   // Load existing replies for this thread
@@ -111,6 +118,7 @@ export function ThreadView({
           parentMessageId={parentMessage.id}
           mainChatId={mainChatId}
           className="h-full max-h-full flex flex-col"
+          onFinish={handleNewReply}
         />
       </div>
     </div>

@@ -21,6 +21,7 @@ export function Chat({
   parentMessageId,
   mainChatId,
   className = "",
+  onFinish,
 }: {
   id: string;
   initialMessages: Array<Message>;
@@ -28,6 +29,7 @@ export function Chat({
   parentMessageId?: string;
   mainChatId?: string;
   className?: string;
+  onFinish?: () => void;
 }) {
   const router = useRouter();
   const chatIdForSubmit = isThread ? mainChatId! : id;
@@ -45,6 +47,7 @@ export function Chat({
         // Always stay on the main chat URL after sending
         const url = `/chat/${chatIdForSubmit}`;
         window.history.replaceState({}, "", url);
+        onFinish?.();
       },
     });
 
@@ -114,7 +117,7 @@ export function Chat({
             {message.content}
           </div>
           {showReply && !isThread && (
-            <div className="mt-2 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-2 flex items-center space-x-2 transition-opacity">
               <Button
                 variant="ghost"
                 size="sm"
