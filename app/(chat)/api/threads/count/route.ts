@@ -8,6 +8,7 @@ import {
   createJsonResponse,
   createInternalErrorResponse,
 } from "@/lib/api-responses";
+import { getSessionUserId } from "@/lib/get-session-user-id";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -16,15 +17,8 @@ export async function GET(request: NextRequest) {
     return createUnauthorizedResponse();
   }
 
-  // Extract the actual ID string from the user object
-  const userId =
-    typeof session.user.id === "object"
-      ? (session.user.id as any).id
-      : session.user.id;
-
-  if (!userId) {
-    return createUnauthorizedResponse();
-  }
+  const userId = getSessionUserId(session);
+  if (!userId) return createUnauthorizedResponse();
 
   const { searchParams } = new URL(request.url);
   const parentMessageId = searchParams.get("parentMessageId");
