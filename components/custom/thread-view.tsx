@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Chat } from "./chat";
 import { Message } from "ai";
 import { useState, useEffect } from "react";
-import { convertToUIMessages } from "@/lib/utils";
 
 interface ThreadViewProps {
   parentMessage: Message;
@@ -39,7 +38,7 @@ export function ThreadView({
         );
         if (!res.ok) return;
         const { threads } = await res.json();
-        setThreadMessages(convertToUIMessages(threads));
+        setThreadMessages(threads);
       } catch {
         // ignore errors
       }

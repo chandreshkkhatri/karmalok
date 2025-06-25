@@ -41,9 +41,15 @@ export async function GET(request: NextRequest) {
       return createUnauthorizedResponse();
     }
 
-    const threads = await getThreadMessages(parentMessageId);
+    const dbMessages = await getThreadMessages(parentMessageId);
 
-    return createJsonResponse({ threads });
+    const uiMessages = dbMessages.map((msg: any) => ({
+      id: msg._id.toString(),
+      role: msg.senderId.toString() === userId ? "user" : "assistant",
+      content: msg.body,
+    }));
+
+    return createJsonResponse({ threads: uiMessages });
   } catch (error) {
     console.error("Failed to get threads:", error);
     return createInternalErrorResponse();
