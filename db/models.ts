@@ -34,8 +34,8 @@ export interface IChat extends Document {
 }
 const chatSchema = new Schema<IChat>(
   {
-    userId: { type: Schema.Types.ObjectId, required: true },
-    aiId: { type: Schema.Types.ObjectId, required: true },
+    userId: { type: String, required: true },
+    aiId: { type: String, required: true },
     title: { type: String },
     lastMsgAt: { type: Date, default: Date.now, required: true },
   },
@@ -59,14 +59,14 @@ export interface IMessage extends Document {
 }
 const messageSchema = new Schema<IMessage>(
   {
-    chatId: { type: Schema.Types.ObjectId, required: true },
-    senderId: { type: Schema.Types.ObjectId, required: true },
+    chatId: { type: String, required: true },
+    senderId: { type: String, required: true },
     parentMsgId: { type: String, default: null },
     body: { type: String, required: true },
     files: [{ name: String, url: String, mime: String }],
     reactions: [
       {
-        userId: { type: Schema.Types.ObjectId, required: true },
+        userId: { type: String, required: true },
         emoji: { type: String, required: true },
       },
     ],
