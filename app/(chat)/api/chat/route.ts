@@ -14,6 +14,7 @@ import {
 import { generateUUID } from "@/lib/utils";
 import { Chat } from "@/db/models";
 import { generateText } from "ai";
+import { ensureConnection } from "@/db/connection";
 
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
             )}\nAssistant: ${toPlainText(responseMessages[0].content)}`,
           });
 
+          await ensureConnection();
           await Chat.findByIdAndUpdate(id, { title });
         }
       }
@@ -148,6 +150,7 @@ export async function PUT(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  await ensureConnection();
   await Chat.findByIdAndUpdate(id, { title });
 
   return new Response("OK", { status: 200 });

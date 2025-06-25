@@ -1,8 +1,6 @@
 import "server-only";
-import connectToDatabase from "./connection";
+import { ensureConnection } from "./connection";
 import { User, Chat, Message } from "./models";
-
-connectToDatabase();
 
 // Re-export types for external use
 export { Chat } from "./models";
@@ -14,9 +12,11 @@ export async function createUser(
   avatarUrl?: string,
   isBot = false
 ) {
+  await ensureConnection();
   return User.create({ email, displayName, avatarUrl, isBot });
 }
 export async function getUserByEmail(email: string) {
+  await ensureConnection();
   return User.findOne({ email }).lean();
 }
 
@@ -27,6 +27,7 @@ export async function createChat(
   title?: string,
   chatId?: string
 ) {
+  await ensureConnection();
   const chatData: any = { userId, aiId };
 
   if (title) {
@@ -43,6 +44,7 @@ export async function createChat(
   return chat.toObject();
 }
 export async function getChatsByUserId(userId: string) {
+  await ensureConnection();
   const chats = await Chat.find({ userId })
     .sort({ lastMsgAt: -1 })
     .lean();
@@ -54,6 +56,7 @@ export async function getChatsByUserId(userId: string) {
   }));
 }
 export async function getChatById({ id }: { id: string }) {
+  await ensureConnection();
   const chat = await Chat.findById(id).lean();
   if (chat && !Array.isArray(chat)) {
     return { ...chat, id: (chat as any)._id.toString() } as any;
@@ -75,6 +78,7 @@ export async function createMessage({
   body: string;
   files?: Array<{ name: string; url: string; mime: string }>;
 }) {
+  await ensureConnection();
   const message = await Message.create({
     chatId,
     senderId,
@@ -87,6 +91,7 @@ export async function createMessage({
 }
 
 export async function getMessages(chatId: string, limit = 50) {
+  await ensureConnection();
   return Message.find({ chatId, parentMsgId: null })
     .sort({ createdAt: 1 })
     .limit(limit)
@@ -94,6 +99,7 @@ export async function getMessages(chatId: string, limit = 50) {
 }
 
 export async function getThreadMessages(parentMsgId: string) {
+  await ensureConnection();
   return Message.find({ parentMsgId }).sort({ createdAt: 1 }).lean();
 }
 
@@ -102,12 +108,15 @@ export async function getThreadCountByParentMessage({
 }: {
   parentMessageId: string;
 }) {
+  await ensureConnection();
   return Message.countDocuments({ parentMsgId: parentMessageId });
 }
 export async function getMessageById({ id }: { id: string }) {
+  await ensureConnection();
   return Message.findById(id).lean();
 }
 export async function deleteChatById({ id }: { id: string }) {
+  await ensureConnection();
   await Message.deleteMany({ chatId: id });
   return Chat.findByIdAndDelete(id);
 }
