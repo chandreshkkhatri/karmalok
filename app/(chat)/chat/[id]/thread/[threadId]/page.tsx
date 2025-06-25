@@ -1,10 +1,9 @@
-import { CoreMessage } from "ai";
+import { Message, generateId } from "ai";
 import { notFound } from "next/navigation";
 
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
 import { getChatById, Chat } from "@/db/queries";
-import { convertToUIMessages } from "@/lib/utils";
 
 export default async function ThreadPage({
   params,
@@ -58,10 +57,20 @@ export default async function ThreadPage({
 
   const threadData = threadChat as any;
 
-  // Convert messages to UI format
+  // Map DB messages to UI format
+  const uiMessages: Message[] = (threadData.messages || []).map((msg: any) => {
+    const role: "user" | "assistant" =
+      msg.senderId?.toString() === userId ? "user" : "assistant";
+    return {
+      id: msg._id?.toString() || generateId(),
+      role,
+      content: msg.body,
+    };
+  });
+
   const chat: Chat = {
     id: threadData._id || threadData.id,
-    messages: convertToUIMessages(threadData.messages as Array<CoreMessage>),
+    messages: uiMessages,
     userId: threadData.userId,
     isThread: threadData.isThread || true,
     parentMessageId: threadData.parentMessageId,

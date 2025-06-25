@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     model: geminiProModel,
     system: `You are a helpful AI assistant. You can help with various tasks when requested. Today's date is ${new Date().toLocaleDateString()}.
     
-    IMPORTANT: You are responding in a reply thread. Only answer based on the user’s follow-up question.`,
+    IMPORTANT: You are responding in a reply thread. Only answer based on the user's follow-up question.`,
     messages: fullContext,
     experimental_telemetry: {
       isEnabled: true,
@@ -62,12 +62,23 @@ export async function POST(request: Request) {
     },
     onFinish: async ({ responseMessages }) => {
       // Persist AI response(s)
+      const toPlainText = (content: any): string => {
+        if (typeof content === "string") return content;
+        if (Array.isArray(content)) {
+          return content
+            .filter((p) => p.type === "text")
+            .map((p: any) => p.text)
+            .join("");
+        }
+        return "";
+      };
+
       for (const msg of responseMessages) {
         await createMessage({
           chatId: mainChatId,
           senderId: (await getChatById({ id: mainChatId })).aiId.toString(),
           parentMsgId: parentMessageId,
-          body: msg.content,
+          body: toPlainText(msg.content),
         });
       }
     },

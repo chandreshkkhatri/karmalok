@@ -85,7 +85,7 @@ export async function createMessage({
 
 export async function getMessages(chatId: string, limit = 50) {
   return Message.find({ chatId, parentMsgId: null })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: 1 })
     .limit(limit)
     .lean();
 }

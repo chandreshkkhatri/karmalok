@@ -74,11 +74,22 @@ export async function POST(request: Request) {
       // Persist AI response messages
       const currentChat = await getChatById({ id });
       if (currentChat) {
+        const toPlainText = (content: any): string => {
+          if (typeof content === "string") return content;
+          if (Array.isArray(content)) {
+            return content
+              .filter((p) => p.type === "text")
+              .map((p: any) => p.text)
+              .join("");
+          }
+          return "";
+        };
+
         for (const msg of responseMessages) {
           await createMessage({
             chatId: id,
             senderId: (currentChat as any).aiId,
-            body: String(msg.content),
+            body: toPlainText(msg.content),
           });
         }
       }

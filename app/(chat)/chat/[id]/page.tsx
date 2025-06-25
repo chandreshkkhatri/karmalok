@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
 import { getChatById, getMessages } from "@/db/queries";
-import { convertToUIMessages } from "@/lib/utils";
+import { generateId, Message } from "ai";
 
 export default async function Page({ params }: { params: any }) {
   const { id } = params;
@@ -29,9 +29,17 @@ export default async function Page({ params }: { params: any }) {
     notFound();
   }
 
-  // fetch top-level messages
+  // fetch top-level messages from DB and map to UI-friendly format
   const rawMessages = await getMessages(id);
-  const uiMessages = convertToUIMessages(rawMessages);
+  const uiMessages: Message[] = rawMessages.map((msg: any) => {
+    const role: "user" | "assistant" =
+      msg.senderId.toString() === userId ? "user" : "assistant";
+    return {
+      id: msg._id?.toString() || generateId(),
+      role,
+      content: msg.body,
+    };
+  });
   const isThread = false;
 
   return (
