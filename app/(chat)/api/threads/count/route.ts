@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
 
     const threadCount = await getThreadCountByParentMessage({
       parentMessageId,
-      mainChatId,
     });
 
     return createJsonResponse({ count: threadCount });

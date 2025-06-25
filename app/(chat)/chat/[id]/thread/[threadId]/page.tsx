@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
-import { getChatById, Chat } from "@/db/queries";
+import { getChatById } from "@/db/queries";
 
 export default async function ThreadPage({
   params,
@@ -68,21 +68,10 @@ export default async function ThreadPage({
     };
   });
 
-  const chat: Chat = {
-    id: threadData._id || threadData.id,
-    messages: uiMessages,
-    userId: threadData.userId,
-    isThread: threadData.isThread || true,
-    parentMessageId: threadData.parentMessageId,
-    mainChatId: threadData.mainChatId,
-    createdAt: threadData.createdAt,
-    updatedAt: threadData.updatedAt,
-  };
-
   return (
     <PreviewChat
       id={threadId}
-      initialMessages={chat.messages}
+      initialMessages={uiMessages}
       isThread={true}
       parentMessageId={parentMessageId || threadData.parentMessageId}
       mainChatId={mainChatId}

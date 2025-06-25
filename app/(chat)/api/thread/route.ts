@@ -1,4 +1,4 @@
-import { convertToCoreMessages, Message, streamText } from "ai";
+import { convertToCoreMessages, Message, streamText, CoreMessage } from "ai";
 import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   const session = await auth();
 
-  if (!session) {
+  if (!session || !session.user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -40,19 +40,29 @@ export async function POST(request: Request) {
         ? (session.user.id as any).id
         : session.user.id;
 
+    const toPlainText = (content: any): string => {
+      if (typeof content === "string") return content;
+      if (Array.isArray(content)) {
+        return content
+          .filter((p) => p.type === "text")
+          .map((p: any) => p.text)
+          .join("");
+      }
+      return "";
+    };
+
     await createMessage({
       chatId: mainChatId,
       senderId: userId,
       parentMsgId: parentMessageId,
-      body: userMsg.content,
+      body: toPlainText(userMsg.content),
     });
   }
 
   // Build extended context: up to four messages before the parent + the parent message itself + the entire thread conversation
-
   const chatDoc = await getChatById({ id: mainChatId });
 
-  let additionalContext: Array<Message> = [];
+  let additionalContext: Array<CoreMessage> = [];
 
   if (chatDoc) {
     const aiId = (chatDoc as any).aiId?.toString();
@@ -60,7 +70,7 @@ export async function POST(request: Request) {
     // Fetch the parent message (top-level)
     const parentDbMsg = await DbMessage.findById(parentMessageId).lean();
 
-    if (parentDbMsg) {
+    if (parentDbMsg && !Array.isArray(parentDbMsg)) {
       // Fetch up to 4 previous top-level messages that occurred before the parent message
       const prevDbMsgs = await DbMessage.find({
         chatId: mainChatId,
@@ -71,7 +81,7 @@ export async function POST(request: Request) {
         .limit(4)
         .lean();
 
-      const toCore = (m: any): Message => ({
+      const toCore = (m: any): CoreMessage => ({
         role: m.senderId.toString() === aiId ? "assistant" : "user",
         content: m.body,
       });
@@ -84,7 +94,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const fullContext = [...additionalContext, ...coreMessages];
+  const fullContext: CoreMessage[] = [...additionalContext, ...coreMessages];
 
   const result = await streamText({
     model: geminiProModel,
