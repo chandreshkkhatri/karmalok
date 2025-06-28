@@ -1,0 +1,22 @@
+# Robots.txt for Restack App
+User-agent: *
+Allow: /
+
+# Block access to API routes and private pages
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow public assets
+Allow: /images/
+Allow: /fonts/
+Allow: /*.css
+Allow: /*.js
+
+# Sitemap location
+Sitemap: https://restackapp.vercel.app/sitemap.xml
+
+# Crawl delay (optional - be respectful to search engines)
+Crawl-delay: 1
