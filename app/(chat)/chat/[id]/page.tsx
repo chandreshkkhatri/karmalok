@@ -1,8 +1,64 @@
+import { generateId, Message } from "ai";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
+
 import { auth } from "@/app/(auth)/auth";
 import { Chat as PreviewChat } from "@/components/custom/chat";
 import { getChatById, getMessages } from "@/db/queries";
-import { generateId, Message } from "ai";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: any;
+}): Promise<Metadata> {
+  const { id } = params;
+
+  if (!id || id === "undefined" || id === "null") {
+    return {
+      title: "Chat Not Found",
+      description: "The requested chat conversation could not be found.",
+    };
+  }
+
+  try {
+    const chatFromDb = await getChatById({ id });
+
+    if (!chatFromDb) {
+      return {
+        title: "Chat Not Found",
+        description: "The requested chat conversation could not be found.",
+      };
+    }
+
+    const messages = await getMessages(id);
+    const firstMessage = messages[0]?.body || "";
+    const truncatedMessage =
+      firstMessage.length > 100
+        ? firstMessage.substring(0, 100) + "..."
+        : firstMessage;
+
+    return {
+      title: `Chat Conversation - ${truncatedMessage || "AI Assistant"}`,
+      description: `Continue your conversation with our AI assistant. ${
+        truncatedMessage ||
+        "Get intelligent responses and boost your productivity."
+      }`,
+      robots: {
+        index: false, // Don't index private chat conversations
+        follow: false,
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Chat Conversation",
+      description: "Continue your conversation with our AI assistant.",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+}
 
 export default async function Page({ params }: { params: any }) {
   const { id } = params;
