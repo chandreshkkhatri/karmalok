@@ -10,21 +10,6 @@ import { SubmitButton } from "@/components/custom/submit-button";
 
 import { login, LoginActionState } from "../actions";
 
-export const metadata = {
-  title: "Login - Access Your AI Chat Assistant",
-  description:
-    "Sign in to access your personal AI chat assistant. Continue your conversations and boost your productivity with advanced AI technology.",
-  robots: {
-    index: false, // Don't index login pages
-    follow: true,
-  },
-  openGraph: {
-    title: "Login - Access Your AI Chat Assistant",
-    description:
-      "Sign in to access your personal AI chat assistant and continue your conversations.",
-  },
-};
-
 export default function Page() {
   const router = useRouter();
 

@@ -10,21 +10,6 @@ import { SubmitButton } from "@/components/custom/submit-button";
 
 import { register, RegisterActionState } from "../actions";
 
-export const metadata = {
-  title: "Register - Join Our AI Chat Platform",
-  description:
-    "Create your account to access our powerful AI chat assistant. Get started with intelligent conversations and boost your productivity today.",
-  robots: {
-    index: false, // Don't index registration pages
-    follow: true,
-  },
-  openGraph: {
-    title: "Register - Join Our AI Chat Platform",
-    description:
-      "Create your account to access our powerful AI chat assistant and start intelligent conversations.",
-  },
-};
-
 export default function Page() {
   const router = useRouter();
 
