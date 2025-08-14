@@ -13,6 +13,7 @@ import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
 
 import { ThreadView } from "./thread-view";
+import { EnhancedMessage } from "./enhanced-message";
 
 export function Chat({
   id,
@@ -113,8 +114,14 @@ export function Chat({
               {formatTime(new Date())}
             </span>
           </div>
-          <div className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-            {message.content}
+          <div className="mt-1 text-sm text-gray-900">
+            <EnhancedMessage 
+              message={message}
+              onAnnotationReply={(question, text) => {
+                // Optional: Handle annotation replies
+                console.log("Annotation reply:", question, text);
+              }}
+            />
           </div>
           {showReply && !isThread && (
             <div className="mt-2 flex items-center space-x-2 transition-opacity">
