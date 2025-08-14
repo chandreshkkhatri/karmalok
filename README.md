@@ -1,60 +1,70 @@
 # Restack App
 
-A powerful and customizable AI-powered chatbot built with modern web technologies.
+Slack-style AI chat application with threaded conversations powered by Google Gemini.
 
-Restack App provides a seamless and interactive chat experience, leveraging the power of large language models to deliver intelligent and helpful responses. This repository contains the full source code for the application.
+## Key Features
 
-## Features
+- **Threaded Conversations**: Organize discussions with nested replies - keep context intact
+- **Real-time Streaming**: Fast responses via Vercel AI SDK streaming
+- **Persistent History**: MongoDB-backed chat storage with automatic session management
+- **Secure Auth**: NextAuth.js with email/password authentication
+- **Modern UI**: Responsive Slack-like interface built with shadcn/ui and Tailwind CSS
 
-- **Intuitive Chat Interface**: A clean, Slack-like user interface for a natural conversation flow.
-- **Threaded Conversations**: Organize discussions with nested reply threads.
-- **Real-time Responses**: Powered by the Vercel AI SDK for streaming text generation.
-- **Secure Authentication**: User accounts are managed securely with NextAuth.js.
-- **Persistent Chat History**: Conversations are saved, allowing users to pick up where they left off.
-- **Customizable & Extendable**: Built with developers in mind, making it easy to add new features and integrations.
+## Quick Start
+
+```bash
+# Clone and install
+git clone <repository-url>
+cd restackapp
+pnpm install
+
+# Configure environment
+cp .env.example .env.local
+# Add your credentials:
+# - MONGODB_URI
+# - AUTH_SECRET
+# - GOOGLE_GENERATIVE_AI_API_KEY
+
+# Run development server
+pnpm dev
+```
+
+Open http://localhost:3000
 
 ## Tech Stack
 
-- **Framework**: [Next.js](https://nextjs.org) (App Router)
-- **AI**: [Vercel AI SDK](https://sdk.vercel.ai/docs), [Google Gemini](https://ai.google.dev/)
-- **UI**: [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Radix UI](https://radix-ui.com)
-- **Authentication**: [NextAuth.js](https://next-auth.js.org/)
-- **Database**: [MongoDB](https://www.mongodb.com/)
+- **Next.js 15** (App Router)
+- **Google Gemini** (AI Model)
+- **MongoDB** (Database)
+- **NextAuth.js** (Authentication)
+- **Vercel AI SDK** (Streaming)
+- **shadcn/ui** (Components)
 
-## Getting Started
+## Scripts
 
-To run the application locally, follow these steps:
+```bash
+pnpm dev              # Development server
+pnpm build            # Production build
+pnpm start            # Production server
+pnpm lint             # Run linter
+pnpm migrate-indexes  # Setup MongoDB indexes
+```
 
-1.  **Clone the repository:**
+## Project Structure
 
-    ```bash
-    git clone <repository-url>
-    cd restackapp
-    ```
+```
+app/
+├── (auth)/          # Authentication pages
+├── (chat)/          # Chat interface & API routes
+│   ├── api/         # Backend endpoints
+│   └── chat/        # Chat UI pages
+components/
+├── custom/          # App-specific components
+└── ui/              # Reusable UI components
+db/                  # Database models & queries
+ai/                  # AI SDK configuration
+```
 
-2.  **Install dependencies:**
+## License
 
-    ```bash
-    pnpm install
-    ```
-
-3.  **Set up environment variables:**
-    Create a `.env.local` file in the root of the project and add the necessary environment variables. You can use `.env.example` as a template.
-
-4.  **Run the development server:**
-
-    ```bash
-    pnpm dev
-    ```
-
-5.  Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
-
-## Configuration
-
-The application requires the following environment variables to be set:
-
-- `MONGODB_URI`: Your MongoDB connection string.
-- `AUTH_SECRET`: A secret key for NextAuth.js.
-- `GOOGLE_GENERATIVE_AI_API_KEY`: Your API key for the Google Gemini model.
-
-Refer to the `.env.example` file for a complete list of required and optional variables.
+MIT
