@@ -137,10 +137,10 @@ export function EnhancedMessage({ message, onAnnotationReply }: EnhancedMessageP
           position: relative;
           background: linear-gradient(
             180deg,
-            transparent 60%,
-            rgba(59, 130, 246, 0.15) 60%
+            transparent 65%,
+            rgba(251, 191, 36, 0.2) 65%
           );
-          border-bottom: 2px solid rgba(59, 130, 246, 0.4);
+          border-bottom: 1px dashed rgba(251, 191, 36, 0.5);
           padding: 0 2px;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -149,24 +149,26 @@ export function EnhancedMessage({ message, onAnnotationReply }: EnhancedMessageP
         .annotation-highlight:hover {
           background: linear-gradient(
             180deg,
-            transparent 60%,
-            rgba(59, 130, 246, 0.25) 60%
+            transparent 65%,
+            rgba(251, 191, 36, 0.3) 65%
           );
-          border-bottom-color: rgba(59, 130, 246, 0.6);
+          border-bottom-color: rgba(251, 191, 36, 0.7);
         }
 
         .annotation-highlight::after {
-          content: "💡";
+          content: "📌";
           position: absolute;
-          top: -8px;
-          right: -8px;
-          font-size: 12px;
+          top: -10px;
+          right: -10px;
+          font-size: 10px;
           opacity: 0;
-          transition: opacity 0.2s;
+          transform: scale(0.8);
+          transition: all 0.2s ease;
         }
 
         .annotation-highlight:hover::after {
           opacity: 1;
+          transform: scale(1);
         }
       `}</style>
     </div>
