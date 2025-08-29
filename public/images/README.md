@@ -18,7 +18,7 @@ This directory should contain the following optimized images for SEO:
 ### Existing Images:
 
 - `demo-thumbnail.png` - Already exists, good for structured data
-- `restackapp-logo.png` - Already exists, can be used in social sharing
+- `karmalok-logo.png` - Already exists, can be used in social sharing
 
 ## Recommendations:
 

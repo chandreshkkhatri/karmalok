@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: "AI Chat Assistant - Start Your Conversation",
     description:
       "Start a new conversation with our AI-powered chat assistant. Get intelligent responses and boost your productivity.",
-    url: "https://restackapp.vercel.app",
+    url: "https://karmalok.vercel.app",
   },
   twitter: {
     title: "AI Chat Assistant - Start Your Conversation",

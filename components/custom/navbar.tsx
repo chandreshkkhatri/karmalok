@@ -23,10 +23,10 @@ export const Navbar = async () => {
           <div className="flex flex-row gap-2 items-center">
             <Link href="/" className="flex items-center" prefetch={false}>
               <Image
-                src="/images/restackapp-logo.png"
+                src="/images/karmalok-logo.png"
                 height={100}
                 width={100}
-                alt="Restack App logo"
+                alt="Karmalok logo"
                 className="h-12 w-auto"
               />
             </Link>

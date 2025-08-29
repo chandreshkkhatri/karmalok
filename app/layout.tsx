@@ -8,10 +8,10 @@ import { ThemeProvider } from "@/components/custom/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://restackapp.vercel.app"), // Update this to your actual domain
+  metadataBase: new URL("https://karmalok.vercel.app"), // Update this to your actual domain
   title: {
-    default: "Restack App - AI-Powered Chat Assistant",
-    template: "%s | Restack App",
+    default: "Karmalok - AI-Powered Chat Assistant",
+    template: "%s | Karmalok",
   },
   description:
     "Advanced AI chatbot powered by Google Gemini. Get intelligent responses, have natural conversations, and boost your productivity with our cutting-edge chat assistant.",
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
     "conversational AI",
     "productivity tool",
   ],
-  authors: [{ name: "Restack App Team" }],
-  creator: "Restack App",
-  publisher: "Restack App",
+  authors: [{ name: "Karmalok Team" }],
+  creator: "Karmalok",
+  publisher: "Karmalok",
   robots: {
     index: true,
     follow: true,
@@ -40,27 +40,27 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://restackapp.vercel.app",
-    title: "Restack App - AI-Powered Chat Assistant",
+    url: "https://karmalok.vercel.app",
+    title: "Karmalok - AI-Powered Chat Assistant",
     description:
       "Advanced AI chatbot powered by Google Gemini. Get intelligent responses, have natural conversations, and boost your productivity.",
-    siteName: "Restack App",
+    siteName: "Karmalok",
     images: [
       {
         url: "/images/og-image.png", // We'll create this
         width: 1200,
         height: 630,
-        alt: "Restack App - AI Chat Assistant",
+        alt: "Karmalok - AI Chat Assistant",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Restack App - AI-Powered Chat Assistant",
+    title: "Karmalok - AI-Powered Chat Assistant",
     description:
       "Advanced AI chatbot powered by Google Gemini. Get intelligent responses and boost your productivity.",
     images: ["/images/twitter-image.png"], // We'll create this
-    creator: "@restackapp", // Update with your Twitter handle
+    creator: "@karmalok", // Update with your Twitter handle
   },
   verification: {
     google: "your-google-verification-code", // Add your Google Search Console verification
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     yahoo: "your-yahoo-verification-code", // Optional
   },
   alternates: {
-    canonical: "https://restackapp.vercel.app",
+    canonical: "https://karmalok.vercel.app",
   },
 };
 

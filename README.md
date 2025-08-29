@@ -1,4 +1,4 @@
-# Restack App
+# Karmalok
 
 Slack-style AI chat application with threaded conversations powered by Google Gemini.
 
@@ -15,7 +15,7 @@ Slack-style AI chat application with threaded conversations powered by Google Ge
 ```bash
 # Clone and install
 git clone <repository-url>
-cd restackapp
+cd karmalok
 pnpm install
 
 # Configure environment
