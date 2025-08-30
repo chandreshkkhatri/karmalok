@@ -22,13 +22,23 @@ import { Textarea } from "../ui/textarea";
 const suggestedActions = [
   {
     title: "Explain a concept",
-    label: "like quantum computing",
-    action: "Explain a concept like quantum computing",
+    label: "like quantum computing or AI",
+    action: "Explain quantum computing in simple terms",
   },
   {
-    title: "Write a story",
-    label: "about a robot who discovers music",
-    action: "Write a story about a robot who discovers music",
+    title: "Help with writing",
+    label: "emails, essays, or code",
+    action: "Help me write a professional email",
+  },
+  {
+    title: "Creative assistance",
+    label: "stories, ideas, or brainstorming",
+    action: "Write a creative story about space exploration",
+  },
+  {
+    title: "Problem solving",
+    label: "math, logic, or analysis",
+    action: "Help me solve a complex problem step by step",
   },
 ];
 
@@ -158,7 +168,7 @@ export function MultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="grid sm:grid-cols-2 gap-4 w-full md:px-0 mx-auto md:max-w-[500px]">
+          <div className="grid sm:grid-cols-2 gap-3 w-full md:px-0 mx-auto md:max-w-[600px]">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -166,7 +176,7 @@ export function MultimodalInput({
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ delay: 0.05 * index }}
                 key={index}
-                className={index > 1 ? "hidden sm:block" : "block"}
+                className={index > 3 ? "hidden lg:block" : "block"}
               >
                 <button
                   onClick={async () => {
@@ -175,12 +185,23 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="border-none bg-muted/50 w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-3 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
+                  className="w-full text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 text-gray-800 dark:text-gray-200 rounded-xl p-4 text-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 shadow-sm hover:shadow-md group"
                 >
-                  <span className="font-medium">{suggestedAction.title}</span>
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    {suggestedAction.label}
-                  </span>
+                  <div className="flex items-start gap-3">
+                    <div className="size-8 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <span className="text-blue-600 dark:text-blue-400 text-sm">
+                        ✨
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-900 dark:text-white block">
+                        {suggestedAction.title}
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">
+                        {suggestedAction.label}
+                      </span>
+                    </div>
+                  </div>
                 </button>
               </motion.div>
             ))}
@@ -218,11 +239,11 @@ export function MultimodalInput({
 
       <Textarea
         ref={textareaRef}
-        placeholder="Send a message..."
+        placeholder="Type your message..."
         value={input}
         onChange={handleInput}
-        className="min-h-[24px] overflow-hidden resize-none rounded-lg text-base bg-muted border-none"
-        rows={3}
+        className="min-h-[48px] overflow-hidden resize-none rounded-2xl text-base bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 pr-24 py-3 px-4 shadow-sm"
+        rows={1}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
@@ -236,40 +257,45 @@ export function MultimodalInput({
         }}
       />
 
-      {isLoading ? (
+      <div className="absolute bottom-2 right-2 flex items-center gap-2">
         <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 text-white"
+          className="rounded-full size-8 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
           onClick={(event) => {
             event.preventDefault();
-            stop();
+            fileInputRef.current?.click();
           }}
+          variant="outline"
+          disabled={isLoading}
         >
-          <StopIcon size={14} />
+          <PaperclipIcon
+            size={16}
+            className="text-gray-600 dark:text-gray-300"
+          />
         </Button>
-      ) : (
-        <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 text-white"
-          onClick={(event) => {
-            event.preventDefault();
-            submitForm();
-          }}
-          disabled={input.length === 0 || uploadQueue.length > 0}
-        >
-          <ArrowUpIcon size={14} />
-        </Button>
-      )}
 
-      <Button
-        className="rounded-full p-1.5 h-fit absolute bottom-2 right-10 m-0.5 dark:border-zinc-700"
-        onClick={(event) => {
-          event.preventDefault();
-          fileInputRef.current?.click();
-        }}
-        variant="outline"
-        disabled={isLoading}
-      >
-        <PaperclipIcon size={14} />
-      </Button>
+        {isLoading ? (
+          <Button
+            className="rounded-full size-8 p-0 bg-red-500 hover:bg-red-600 text-white shadow-lg"
+            onClick={(event) => {
+              event.preventDefault();
+              stop();
+            }}
+          >
+            <StopIcon size={16} />
+          </Button>
+        ) : (
+          <Button
+            className="rounded-full size-8 p-0 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={(event) => {
+              event.preventDefault();
+              submitForm();
+            }}
+            disabled={input.length === 0 || uploadQueue.length > 0}
+          >
+            <ArrowUpIcon size={16} />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
