@@ -1,6 +1,6 @@
 {
-    "name": "Restack App - AI Chat Assistant",
-    "short_name": "Restack App",
+    "name": "Karmalok App - AI Chat Assistant",
+    "short_name": "Karmalok App",
     "description": "Advanced AI chatbot powered by Google Gemini",
     "start_url": "/",
     "display": "standalone",
