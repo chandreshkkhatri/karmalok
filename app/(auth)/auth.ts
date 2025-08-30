@@ -22,8 +22,14 @@ export const {
       credentials: {},
       async authorize({ email, password }: any) {
         const user = await getUserByEmail(email);
-        if (!user) return null;
-        // TODO: validate password; skipping as password not stored
+        if (!user || Array.isArray(user)) return null;
+        
+        // Validate password if it exists (for non-bot users)
+        if ('password' in user && user.password && !user.isBot) {
+          const isValid = await compare(password, user.password as string);
+          if (!isValid) return null;
+        }
+        
         return user as any;
       },
     }),

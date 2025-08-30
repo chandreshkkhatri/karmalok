@@ -8,12 +8,15 @@ export { Chat } from "./models";
 // User functions
 export async function createUser(
   email: string,
-  displayName: string,
+  password?: string,
+  displayName?: string,
   avatarUrl?: string,
   isBot = false
 ) {
   await ensureConnection();
-  return User.create({ email, displayName, avatarUrl, isBot });
+  // Use email prefix as displayName if not provided
+  const finalDisplayName = displayName || email.split('@')[0];
+  return User.create({ email, password, displayName: finalDisplayName, avatarUrl, isBot });
 }
 export async function getUserByEmail(email: string) {
   await ensureConnection();

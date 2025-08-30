@@ -1,5 +1,6 @@
 "use server";
 
+import { hash } from "bcrypt-ts";
 import { z } from "zod";
 
 import { createUser, getUserByEmail } from "@/db/queries";
@@ -66,7 +67,10 @@ export const register = async (
       return { status: "user_exists" } as RegisterActionState;
     }
 
-    await createUser(validatedData.email, validatedData.password);
+    // Hash the password before storing
+    const hashedPassword = await hash(validatedData.password, 10);
+    await createUser(validatedData.email, hashedPassword);
+    
     await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,
@@ -78,7 +82,8 @@ export const register = async (
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
     }
-
+    
+    console.error("Registration error:", error);
     return { status: "failed" };
   }
 };
