@@ -50,9 +50,10 @@ export async function POST(request: Request) {
     if (!aiUser) {
       aiUser = await createUser(
         "ai@assistant.local",
-        "AI Assistant",
-        undefined,
-        true
+        undefined, // password
+        "AI Assistant", // displayName
+        undefined, // avatarUrl
+        true // isBot
       );
     }
 

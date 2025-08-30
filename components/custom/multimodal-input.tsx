@@ -267,10 +267,7 @@ export function MultimodalInput({
           variant="outline"
           disabled={isLoading}
         >
-          <PaperclipIcon
-            size={16}
-            className="text-gray-600 dark:text-gray-300"
-          />
+          <PaperclipIcon size={16} />
         </Button>
 
         {isLoading ? (
