@@ -14,7 +14,6 @@ import {
   Reply,
   StickyNote,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
@@ -115,35 +114,30 @@ export function Chat({
     const isExpanded = expandedThreads.has(message.id);
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="group relative"
-      >
+      <div className="group relative">
         <div
-          className={`flex gap-3 p-4 ${
+          className={`flex gap-2 p-3 ${
             message.role === "user" ? "justify-end" : ""
           }`}
         >
           {message.role === "assistant" && (
-            <Avatar className="size-9 border-2 border-gray-200 dark:border-gray-700">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm font-semibold">
+            <Avatar className="size-8 shrink-0">
+              <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
                 K
               </AvatarFallback>
             </Avatar>
           )}
 
           <div
-            className={`flex-1 max-w-2xl ${
+            className={`flex-1 max-w-[85%] sm:max-w-2xl ${
               message.role === "user" ? "text-right" : ""
             }`}
           >
             <div
               className={`inline-block ${
                 message.role === "user"
-                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl rounded-tr-lg px-4 py-3 shadow-lg"
-                  : "bg-white dark:bg-gray-800 rounded-2xl rounded-tl-lg border border-gray-200 dark:border-gray-700 px-4 py-3 shadow-lg"
+                  ? "bg-blue-500 text-white rounded-2xl rounded-tr-sm px-3 py-2"
+                  : "bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2"
               }`}
             >
               <div className="flex items-start gap-2">
@@ -158,75 +152,59 @@ export function Chat({
               </div>
             </div>
 
-            {/* Time and actions */}
-            <div
-              className={`flex items-center gap-2 mt-2 ${
-                message.role === "user" ? "justify-end" : ""
-              }`}
-            >
-              <span className="text-xs text-gray-400">
-                {formatTime(new Date())}
-              </span>
-
-              {showReply && !isThread && message.role === "assistant" && (
-                <div className="flex items-center gap-1">
-                  {threadCount > 0 && (
-                    <button
-                      onClick={() => toggleThreadExpansion(message.id)}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                    >
-                      <ChevronRight
-                        className={`w-3 h-3 transition-transform ${
-                          isExpanded ? "rotate-90" : ""
-                        }`}
-                      />
-                      <span>
-                        {threadCount} {threadCount === 1 ? "reply" : "replies"}
-                      </span>
-                    </button>
-                  )}
-
+            {/* Actions - only show on desktop */}
+            {showReply && !isThread && message.role === "assistant" && (
+              <div
+                className={`hidden sm:flex items-center gap-1 mt-1 ${
+                  message.role === "user" ? "justify-end" : ""
+                }`}
+              >
+                {threadCount > 0 && (
                   <button
-                    onClick={() => handleStartThread(message.id)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    onClick={() => toggleThreadExpansion(message.id)}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                   >
-                    <Reply className="w-3 h-3" />
-                    <span>Reply</span>
+                    <ChevronRight
+                      className={`w-3 h-3 transition-transform ${
+                        isExpanded ? "rotate-90" : ""
+                      }`}
+                    />
+                    <span>{threadCount}</span>
                   </button>
-                </div>
-              )}
-            </div>
+                )}
+
+                <button
+                  onClick={() => handleStartThread(message.id)}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                >
+                  <Reply className="w-3 h-3" />
+                  <span>Reply</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {message.role === "user" && (
-            <Avatar className="size-9 border-2 border-blue-200 dark:border-blue-700">
-              <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white text-sm font-semibold">
-                You
+            <Avatar className="size-8 shrink-0">
+              <AvatarFallback className="bg-gray-500 text-white text-xs font-semibold">
+                U
               </AvatarFallback>
             </Avatar>
           )}
         </div>
 
         {/* Thread preview */}
-        <AnimatePresence>
-          {isExpanded && threadCount > 0 && !isThread && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="ml-12 pl-4 border-l-2 border-primary/20"
-            >
-              <div className="py-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                  <p className="font-medium mb-2">Thread Preview</p>
-                  <p className="text-xs">Click reply to view full thread...</p>
-                </div>
+        {isExpanded && threadCount > 0 && !isThread && (
+          <div className="ml-12 pl-4 border-l-2 border-primary/20">
+            <div className="py-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
+                <p className="font-medium mb-2">Thread Preview</p>
+                <p className="text-xs">Click reply to view full thread...</p>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -234,30 +212,27 @@ export function Chat({
     <div
       className={`flex h-full ${className} ${
         isThread ? "max-h-full overflow-hidden" : ""
-      } bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-950/50 dark:to-gray-900`}
+      } bg-white dark:bg-gray-900`}
     >
       {/* Main Chat Area */}
       <div
-        className={`flex-1 flex flex-col min-w-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm ${
+        className={`flex-1 flex flex-col min-w-0 ${
           activeThread
-            ? "border-r border-gray-200/50 dark:border-gray-700/50"
+            ? "lg:border-r border-gray-200 dark:border-gray-700"
             : ""
         } ${isThread ? "h-full max-h-full overflow-hidden" : ""}`}
       >
         {/* Header */}
         {!isThread && (
-          <div className="px-6 py-5 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <span className="text-lg font-bold text-white">K</span>
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="size-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-sm font-bold text-white">K</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Karmalok
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  AI-powered conversations with threaded replies
-                </p>
               </div>
             </div>
           </div>
@@ -273,60 +248,36 @@ export function Chat({
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full p-8">
               <div className="text-center max-w-md">
-                <div className="size-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-white">K</span>
+                <div className="size-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <span className="text-xl font-bold text-white">K</span>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Welcome to Karmalok
                 </h2>
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                  Your intelligent AI conversation companion
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-                  Ask questions, get help with tasks, or just have a friendly
-                  chat. I&apos;m here to assist you with anything you need.
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Ask questions, get help with tasks, or start a conversation.
                 </p>
 
                 {/* Quick suggestions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div className="flex flex-col gap-2 mb-4">
                   <button
                     onClick={() => setInput("Tell me about yourself")}
-                    className="p-4 text-left rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                    className="p-3 text-left rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                        <MessageSquare className="size-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-900 dark:text-white">
-                          Get to know me
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Learn about my capabilities
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Tell me about yourself
+                    </p>
                   </button>
 
                   <button
                     onClick={() =>
                       setInput("Help me write a professional email")
                     }
-                    className="p-4 text-left rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                    className="p-3 text-left rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                        <StickyNote className="size-4 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-900 dark:text-white">
-                          Writing assistant
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Help with emails and documents
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Help me write a professional email
+                    </p>
                   </button>
                 </div>
 
@@ -348,14 +299,14 @@ export function Chat({
           )}
 
           {isLoading && (
-            <div className="px-6 py-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-9 border-2 border-gray-200 dark:border-gray-700">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm font-semibold">
-                    AI
+            <div className="px-3 py-3">
+              <div className="flex items-center gap-2">
+                <Avatar className="size-8 shrink-0">
+                  <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
+                    K
                   </AvatarFallback>
                 </Avatar>
-                <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-sm border border-gray-200 dark:border-gray-700 px-4 py-3 shadow-sm">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2">
                   <div className="typing-indicator flex gap-1">
                     <span className="size-2 bg-gray-400 rounded-full"></span>
                     <span className="size-2 bg-gray-400 rounded-full"></span>
@@ -373,7 +324,7 @@ export function Chat({
         </div>
 
         {/* Input */}
-        <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-4 shrink-0">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 shrink-0">
           <div className="max-w-4xl mx-auto">
             <MultimodalInput
               input={input}
@@ -391,24 +342,16 @@ export function Chat({
       </div>
 
       {/* Thread Sidebar */}
-      <AnimatePresence>
-        {!isThread && activeThread && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 400, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="h-full overflow-hidden border-l border-gray-200 dark:border-gray-700"
-          >
-            <ThreadView
-              parentMessage={activeThread.parentMessage}
-              mainChatId={id}
-              onClose={handleCloseThread}
-              className="h-full w-[400px]"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!isThread && activeThread && (
+        <div className="hidden lg:block h-full overflow-hidden border-l border-gray-200 dark:border-gray-700 w-96">
+          <ThreadView
+            parentMessage={activeThread.parentMessage}
+            mainChatId={id}
+            onClose={handleCloseThread}
+            className="h-full w-full"
+          />
+        </div>
+      )}
     </div>
   );
 }
