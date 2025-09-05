@@ -155,9 +155,7 @@ export function Chat({
             {/* Actions - only show on desktop */}
             {showReply && !isThread && message.role === "assistant" && (
               <div
-                className={`hidden sm:flex items-center gap-1 mt-1 ${
-                  message.role === "user" ? "justify-end" : ""
-                }`}
+                className="hidden sm:flex items-center gap-1 mt-1"
               >
                 {threadCount > 0 && (
                   <button
