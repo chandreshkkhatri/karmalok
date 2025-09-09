@@ -15,6 +15,7 @@ import {
   StickyNote,
   Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -131,8 +132,14 @@ export function Chat({
         >
           {message.role === "assistant" && (
             <Avatar className="size-8 shrink-0">
-              <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
-                K
+              <AvatarFallback className="bg-white border border-gray-200 dark:border-gray-700 p-1">
+                <Image
+                  src="/images/karmalok-logo.png"
+                  alt="Karmalok"
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-contain"
+                />
               </AvatarFallback>
             </Avatar>
           )}
@@ -260,8 +267,14 @@ export function Chat({
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full p-8">
               <div className="text-center max-w-md">
-                <div className="size-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-xl font-bold text-white">K</span>
+                <div className="size-16 mx-auto mb-4 rounded-xl bg-white border border-gray-200 dark:border-gray-700 flex items-center justify-center p-3">
+                  <Image
+                    src="/images/karmalok-logo.png"
+                    alt="Karmalok"
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Welcome to Karmalok
@@ -314,8 +327,14 @@ export function Chat({
             <div className="px-3 py-3">
               <div className="flex items-center gap-2">
                 <Avatar className="size-8 shrink-0">
-                  <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
-                    K
+                  <AvatarFallback className="bg-white border border-gray-200 dark:border-gray-700 p-1">
+                    <Image
+                      src="/images/karmalok-logo.png"
+                      alt="Karmalok"
+                      width={24}
+                      height={24}
+                      className="w-full h-full object-contain"
+                    />
                   </AvatarFallback>
                 </Avatar>
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2">

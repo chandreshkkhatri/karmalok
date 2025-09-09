@@ -20,16 +20,18 @@ export const Navbar = async () => {
       <div className="bg-white dark:bg-gray-950 fixed top-0 left-0 right-0 h-16 px-4 flex items-center justify-between z-30 border-b border-gray-200 dark:border-gray-800">
         <Link
           href="/"
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           prefetch={false}
         >
-          <Image
-            src="/images/karmalok-logo.png"
-            height={100}
-            width={100}
-            alt="Karmalok logo"
-            className="h-8 w-auto"
-          />
+          <div className="h-12 w-12 rounded-xl bg-white border border-gray-200 dark:border-gray-700 flex items-center justify-center p-2">
+            <Image
+              src="/images/karmalok-logo.png"
+              height={100}
+              width={100}
+              alt="Karmalok logo"
+              className="w-full h-full object-contain"
+            />
+          </div>
           <span className="font-bold text-lg text-gray-900 dark:text-white hidden sm:inline">
             Karmalok
           </span>
@@ -43,6 +45,8 @@ export const Navbar = async () => {
           >
             Pricing
           </Link>
+
+          {!session && <ThemeToggle />}
 
           {session ? (
           <DropdownMenu>
@@ -63,8 +67,8 @@ export const Navbar = async () => {
               <DropdownMenuItem disabled className="text-sm">
                 {session.user?.email}
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-gray-100 dark:focus:bg-gray-800">
-                <ThemeToggle />
+              <DropdownMenuItem className="focus:bg-gray-100 dark:focus:bg-gray-800 p-0">
+                <ThemeToggle inDropdown={true} />
               </DropdownMenuItem>
               <DropdownMenuItem className="p-1 z-50">
                 <form
