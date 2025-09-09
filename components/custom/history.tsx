@@ -154,7 +154,7 @@ export const History = ({ user }: { user: User | undefined }) => {
 
         {/* New Chat Button */}
         {user && (
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               asChild
@@ -200,8 +200,8 @@ export const History = ({ user }: { user: User | undefined }) => {
                 <div
                   key={(chat as any)._id.toString()}
                   className={cx(
-                    "group flex items-center justify-between p-3 rounded-lg hover:bg-white transition-colors",
-                    { "bg-white shadow-sm": (chat as any)._id.toString() === id }
+                    "group flex items-center justify-between p-3 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-colors",
+                    { "bg-white dark:bg-gray-800 shadow-sm": (chat as any)._id.toString() === id }
                   )}
                 >
                   {editingChatId === (chat as any)._id.toString() ? (
@@ -225,7 +225,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                           className="block truncate"
                           title={chat.title || "Untitled Chat"}
                         >
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {chat.title || "Untitled Chat"}
                           </div>
                         </Link>
