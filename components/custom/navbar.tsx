@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { auth, signOut } from "@/app/(auth)/auth";
 
-import { SlashIcon } from "./icons";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "../ui/button";
 import {
@@ -36,7 +35,16 @@ export const Navbar = async () => {
           </span>
         </Link>
 
-        {session ? (
+        <div className="flex items-center gap-4">
+          <Link
+            href="/pricing"
+            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+            prefetch={false}
+          >
+            Pricing
+          </Link>
+
+          {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -79,14 +87,15 @@ export const Navbar = async () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
-          <Button
-            className="px-4 py-2 h-fit font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            asChild
-          >
-            <Link href="/login">Sign In</Link>
-          </Button>
-        )}
+          ) : (
+            <Button
+              className="px-4 py-2 h-fit font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+              asChild
+            >
+              <Link href="/login">Sign In</Link>
+            </Button>
+          )}
+        </div>
       </div>
     </>
   );

@@ -13,7 +13,15 @@ import {
   ChevronRight,
   Reply,
   StickyNote,
+  Sparkles,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
@@ -68,6 +76,7 @@ export function Chat({
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(
     new Set()
   );
+  const [selectedModel, setSelectedModel] = useState<string>("gemini-1.5-flash");
 
   const handleStartThread = (messageId: string) => {
     const parentMessage = messages.find((msg) => msg.id === messageId);
@@ -220,6 +229,26 @@ export function Chat({
             : ""
         } ${isThread ? "h-full max-h-full overflow-hidden" : ""}`}
       >
+        {/* Model Selector Header */}
+        <div className="border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4 shrink-0">
+          <div className="flex items-center justify-between">
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-500" />
+                  <SelectValue placeholder="Select a model" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <SelectItem value="gemini-1.5-flash" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Gemini 1.5 Flash</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Messages */}
         <div
