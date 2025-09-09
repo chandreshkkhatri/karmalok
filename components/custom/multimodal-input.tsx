@@ -19,29 +19,6 @@ import useWindowSize from "./use-window-size";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 
-const suggestedActions = [
-  {
-    title: "Explain a concept",
-    label: "like quantum computing or AI",
-    action: "Explain quantum computing in simple terms",
-  },
-  {
-    title: "Help with writing",
-    label: "emails, essays, or code",
-    action: "Help me write a professional email",
-  },
-  {
-    title: "Creative assistance",
-    label: "stories, ideas, or brainstorming",
-    action: "Write a creative story about space exploration",
-  },
-  {
-    title: "Problem solving",
-    label: "math, logic, or analysis",
-    action: "Help me solve a complex problem step by step",
-  },
-];
-
 export function MultimodalInput({
   input,
   setInput,
@@ -165,49 +142,6 @@ export function MultimodalInput({
 
   return (
     <div className="relative w-full flex flex-col gap-4">
-      {messages.length === 0 &&
-        attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <div className="grid sm:grid-cols-2 gap-3 w-full md:px-0 mx-auto md:max-w-[600px]">
-            {suggestedActions.map((suggestedAction, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.05 * index }}
-                key={index}
-                className={index > 3 ? "hidden lg:block" : "block"}
-              >
-                <button
-                  onClick={async () => {
-                    append({
-                      role: "user",
-                      content: suggestedAction.action,
-                    });
-                  }}
-                  className="w-full text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 text-gray-800 dark:text-gray-200 rounded-xl p-4 text-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 shadow-sm hover:shadow-md group"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="size-8 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <span className="text-blue-600 dark:text-blue-400 text-sm">
-                        ✨
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <span className="font-medium text-gray-900 dark:text-white block">
-                        {suggestedAction.title}
-                      </span>
-                      <span className="text-gray-500 dark:text-gray-400 text-xs">
-                        {suggestedAction.label}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
       <input
         type="file"
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"

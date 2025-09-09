@@ -220,21 +220,6 @@ export function Chat({
             : ""
         } ${isThread ? "h-full max-h-full overflow-hidden" : ""}`}
       >
-        {/* Header */}
-        {!isThread && (
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-sm font-bold text-white">K</span>
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Karmalok
-                </h1>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Messages */}
         <div
