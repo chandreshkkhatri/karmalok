@@ -3,18 +3,9 @@
 import { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  MessageSquare,
-  Send,
-  ChevronRight,
-  Reply,
-  StickyNote,
-  Sparkles,
-} from "lucide-react";
+import { ChevronRight, Reply, Sparkles, Crown } from "lucide-react";
 import Image from "next/image";
 import {
   Select,
@@ -39,6 +30,7 @@ export function Chat({
   mainChatId,
   className = "",
   onFinish,
+  isPro = false,
 }: {
   id: string;
   initialMessages: Array<Message>;
@@ -47,6 +39,7 @@ export function Chat({
   mainChatId?: string;
   className?: string;
   onFinish?: () => void;
+  isPro?: boolean;
 }) {
   const router = useRouter();
   const chatIdForSubmit = isThread ? mainChatId! : id;
@@ -77,7 +70,8 @@ export function Chat({
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(
     new Set()
   );
-  const [selectedModel, setSelectedModel] = useState<string>("gemini-1.5-flash");
+  const [selectedModel, setSelectedModel] =
+    useState<string>("gemini-2.0-flash");
 
   const handleStartThread = (messageId: string) => {
     const parentMessage = messages.find((msg) => msg.id === messageId);
@@ -102,14 +96,6 @@ export function Chat({
         newSet.add(messageId);
       }
       return newSet;
-    });
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
     });
   };
 
@@ -170,9 +156,7 @@ export function Chat({
 
             {/* Actions - only show on desktop */}
             {showReply && !isThread && message.role === "assistant" && (
-              <div
-                className="hidden sm:flex items-center gap-1 mt-1"
-              >
+              <div className="hidden sm:flex items-center gap-1 mt-1">
                 {threadCount > 0 && (
                   <button
                     onClick={() => toggleThreadExpansion(message.id)}
@@ -231,29 +215,51 @@ export function Chat({
       {/* Main Chat Area */}
       <div
         className={`flex-1 flex flex-col min-w-0 ${
-          activeThread
-            ? "lg:border-r border-gray-200 dark:border-gray-700"
-            : ""
+          activeThread ? "lg:border-r border-gray-200 dark:border-gray-700" : ""
         } ${isThread ? "h-full max-h-full overflow-hidden" : ""}`}
       >
         {/* Model Selector Header */}
-        <div className="border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4 shrink-0">
-          <div className="flex items-center justify-between">
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-500" />
-                  <SelectValue placeholder="Select a model" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <SelectItem value="gemini-1.5-flash" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-2 sm:py-3 shrink-0">
+          <div className="flex items-center h-10 lg:h-auto">
+            <div className="ml-14 lg:ml-0">
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger className="w-[180px] sm:w-[200px] h-10 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">Gemini 1.5 Flash</span>
+                    <Sparkles className="w-4 h-4 text-blue-500" />
+                    <SelectValue placeholder="Select a model" />
                   </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <SelectItem
+                    value="gemini-2.5-flash"
+                    className={isPro ? "hover:bg-gray-100 dark:hover:bg-gray-700" : "opacity-50 cursor-not-allowed"}
+                    disabled={!isPro}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Gemini 2.5 Flash</span>
+                      <Crown className="w-3 h-3 text-yellow-500" />
+                      {!isPro && <span className="text-xs text-gray-500 ml-1">Pro</span>}
+                    </div>
+                  </SelectItem>
+                  <SelectItem
+                    value="gemini-2.0-flash"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Gemini 2.0 Flash</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem
+                    value="gemini-1.5-flash"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Gemini 1.5 Flash</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -280,7 +286,7 @@ export function Chat({
                   Welcome to Karmalok
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Ask questions, get help with tasks, or start a conversation.
+                  Think in threads, learn in layers.
                 </p>
 
                 {/* Quick suggestions */}

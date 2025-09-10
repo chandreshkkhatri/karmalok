@@ -135,7 +135,7 @@ export const History = ({ user }: { user: User | undefined }) => {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700"
+        className="lg:hidden fixed top-[4.5rem] left-4 z-40 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700"
       >
         <MenuIcon size={20} />
       </button>
