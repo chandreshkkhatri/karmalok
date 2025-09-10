@@ -4,6 +4,8 @@ import { Toaster } from "sonner";
 import { Navbar } from "@/components/custom/navbar";
 import { StructuredData } from "@/components/custom/structured-data";
 import { ThemeProvider } from "@/components/custom/theme-provider";
+import { PlanProvider } from "@/components/custom/plan-provider";
+import { SessionProvider } from "next-auth/react";
 
 import "./globals.css";
 
@@ -87,17 +89,21 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <StructuredData />
-          <Toaster position="top-center" />
-          <Navbar />
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <PlanProvider>
+              <StructuredData />
+              <Toaster position="top-center" />
+              <Navbar />
+              {children}
+            </PlanProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

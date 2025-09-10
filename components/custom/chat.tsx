@@ -26,6 +26,7 @@ import {
 
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
+import { usePlan, PLAN_CONFIG } from "@/components/custom/plan-provider";
 
 import { ThreadView } from "./thread-view";
 import { EnhancedMessage } from "./enhanced-message";
@@ -78,6 +79,7 @@ export function Chat({
     new Set()
   );
   const [selectedModel, setSelectedModel] = useState<string>("gemini-1.5-flash");
+  const { plan, hasFeatureAccess } = usePlan();
 
   const handleStartThread = (messageId: string) => {
     const parentMessage = messages.find((msg) => msg.id === messageId);
@@ -240,18 +242,60 @@ export function Chat({
         <div className="border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4 shrink-0">
           <div className="flex items-center justify-between">
             <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <SelectTrigger className="w-[240px] h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 px-5 py-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-blue-500" />
                   <SelectValue placeholder="Select a model" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <SelectItem value="gemini-1.5-flash" className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Gemini 1.5 Flash</span>
+              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 w-[240px]">
+                {PLAN_CONFIG[plan].models.map((model) => {
+                  const modelNames: Record<string, { name: string; description: string }> = {
+                    'gemini-1.5-flash': { name: 'Gemini 1.5 Flash', description: 'Fast and efficient' },
+                    'gemini-1.5-pro': { name: 'Gemini 1.5 Pro', description: 'Advanced reasoning' },
+                    'gemini-2.0-flash-exp': { name: 'Gemini 2.0 Flash (Experimental)', description: 'Latest experimental model' },
+                    'gemini-exp-1206': { name: 'Gemini Experimental 1206', description: 'Cutting-edge capabilities' },
+                    'gemini-1.5-pro-002': { name: 'Gemini 1.5 Pro 002', description: 'Enhanced pro model' },
+                  };
+                  
+                  return (
+                    <SelectItem 
+                      key={model} 
+                      value={model} 
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700 py-3 pl-10 pr-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-700"
+                    >
+                      <div className="flex flex-col gap-1 w-full">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-sm leading-tight">{modelNames[model]?.name || model}</span>
+                          {!['gemini-1.5-flash'].includes(model) && (
+                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                              {plan === 'basic' ? 'Pro' : plan.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                          {modelNames[model]?.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+                
+                {plan === 'basic' && (
+                  <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                      Upgrade to Pro for more models:
+                    </p>
+                    <div className="space-y-1">
+                      {['gemini-1.5-pro', 'gemini-2.0-flash-exp'].map((model) => (
+                        <div key={model} className="text-xs text-gray-500 dark:text-gray-500 opacity-70 flex items-center gap-1.5">
+                          <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                          {model}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

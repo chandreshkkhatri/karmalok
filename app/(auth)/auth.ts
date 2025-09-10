@@ -7,7 +7,9 @@ import { getUserByEmail } from "@/db/queries";
 import { authConfig } from "./auth.config";
 
 interface ExtendedSession extends Session {
-  user: User;
+  user: User & {
+    plan: 'basic' | 'pro' | 'enterprise';
+  };
 }
 
 export const {
@@ -38,22 +40,18 @@ export const {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.plan = (user as any).plan || 'basic';
       }
 
       return token;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: ExtendedSession;
-      token: any;
-    }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        (session.user as any).id = token.id as string;
+        (session.user as any).plan = token.plan || 'basic';
       }
 
-      return session;
+      return session as unknown as ExtendedSession;
     },
   },
 });

@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password?: string;
   avatarUrl?: string;
   isBot: boolean;
+  plan: 'basic' | 'pro' | 'enterprise';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,7 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     avatarUrl: { type: String },
     isBot: { type: Boolean, default: false },
+    plan: { type: String, enum: ['basic', 'pro', 'enterprise'], default: 'basic' },
   },
   { timestamps: true }
 );

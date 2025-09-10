@@ -4,6 +4,7 @@ import Link from "next/link";
 import { auth, signOut } from "@/app/(auth)/auth";
 
 import { ThemeToggle } from "./theme-toggle";
+import { PlanBadge } from "./plan-badge";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -65,7 +66,10 @@ export const Navbar = async () => {
               className="w-56 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800"
             >
               <DropdownMenuItem disabled className="text-sm">
-                {session.user?.email}
+                <div className="flex items-center justify-between w-full">
+                  <span>{session.user?.email}</span>
+                  <PlanBadge />
+                </div>
               </DropdownMenuItem>
               <DropdownMenuItem className="focus:bg-gray-100 dark:focus:bg-gray-800 p-0">
                 <ThemeToggle inDropdown={true} />
