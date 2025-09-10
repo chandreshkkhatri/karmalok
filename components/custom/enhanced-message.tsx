@@ -137,26 +137,30 @@ export function EnhancedMessage({ message, onAnnotationReply }: EnhancedMessageP
           position: relative;
           background: linear-gradient(
             180deg,
-            transparent 65%,
-            rgba(251, 191, 36, 0.2) 65%
+            transparent 60%,
+            rgba(59, 130, 246, 0.15) 60%
           );
-          border-bottom: 1px dashed rgba(251, 191, 36, 0.5);
-          padding: 0 2px;
+          border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+          padding: 0 3px;
+          margin: 0 1px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 2px;
         }
 
         .annotation-highlight:hover {
           background: linear-gradient(
             180deg,
-            transparent 65%,
-            rgba(251, 191, 36, 0.3) 65%
+            transparent 60%,
+            rgba(59, 130, 246, 0.25) 60%
           );
-          border-bottom-color: rgba(251, 191, 36, 0.7);
+          border-bottom-color: rgba(59, 130, 246, 0.6);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
         }
 
         .annotation-highlight::after {
-          content: "📌";
+          content: "💬";
           position: absolute;
           top: -10px;
           right: -10px;

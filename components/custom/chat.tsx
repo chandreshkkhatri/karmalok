@@ -156,26 +156,26 @@ export function Chat({
 
             {/* Actions - only show on desktop */}
             {showReply && !isThread && message.role === "assistant" && (
-              <div className="hidden sm:flex items-center gap-1 mt-1">
+              <div className="hidden sm:flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 {threadCount > 0 && (
                   <button
                     onClick={() => toggleThreadExpansion(message.id)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200"
                   >
                     <ChevronRight
-                      className={`w-3 h-3 transition-transform ${
+                      className={`size-3 transition-transform duration-200 ${
                         isExpanded ? "rotate-90" : ""
                       }`}
                     />
-                    <span>{threadCount}</span>
+                    <span>{threadCount} thread{threadCount === 1 ? '' : 's'}</span>
                   </button>
                 )}
 
                 <button
                   onClick={() => handleStartThread(message.id)}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200"
                 >
-                  <Reply className="w-3 h-3" />
+                  <Reply className="size-3" />
                   <span>Reply</span>
                 </button>
               </div>
@@ -191,17 +191,24 @@ export function Chat({
           )}
         </div>
 
-        {/* Thread preview */}
-        {isExpanded && threadCount > 0 && !isThread && (
-          <div className="ml-12 pl-4 border-l-2 border-primary/20">
+        {/* Thread preview with animation */}
+        <div 
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded && threadCount > 0 && !isThread ? "max-h-32 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="ml-12 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
             <div className="py-2 text-sm text-gray-600 dark:text-gray-400">
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                <p className="font-medium mb-2">Thread Preview</p>
-                <p className="text-xs">Click reply to view full thread...</p>
+              <div className="bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/20 dark:to-transparent rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Reply className="size-3 text-blue-500" />
+                  <p className="font-medium text-gray-700 dark:text-gray-300">Thread ({threadCount} {threadCount === 1 ? 'reply' : 'replies'})</p>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic">Click reply to continue in thread...</p>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -236,8 +243,8 @@ export function Chat({
                     disabled={!isPro}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Gemini 2.5 Flash</span>
-                      <Crown className="w-3 h-3 text-yellow-500" />
+                      <span className="font-medium">Tara 2.5 Flash</span>
+                      <Crown className="size-3 text-yellow-500" />
                       {!isPro && <span className="text-xs text-gray-500 ml-1">Pro</span>}
                     </div>
                   </SelectItem>
@@ -246,7 +253,7 @@ export function Chat({
                     className="hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Gemini 2.0 Flash</span>
+                      <span className="font-medium">Tara 2.0 Flash</span>
                     </div>
                   </SelectItem>
                   <SelectItem
@@ -254,7 +261,7 @@ export function Chat({
                     className="hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Gemini 1.5 Flash</span>
+                      <span className="font-medium">Tara 1.5 Flash</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -279,7 +286,7 @@ export function Chat({
                     alt="Karmalok"
                     width={40}
                     height={40}
-                    className="w-full h-full object-contain"
+                    className="size-full object-contain"
                   />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -330,7 +337,7 @@ export function Chat({
           )}
 
           {isLoading && (
-            <div className="px-3 py-3">
+            <div className="p-3">
               <div className="flex items-center gap-2">
                 <Avatar className="size-8 shrink-0">
                   <AvatarFallback className="bg-white border border-gray-200 dark:border-gray-700 p-1">
@@ -339,7 +346,7 @@ export function Chat({
                       alt="Karmalok"
                       width={24}
                       height={24}
-                      className="w-full h-full object-contain"
+                      className="size-full object-contain"
                     />
                   </AvatarFallback>
                 </Avatar>
@@ -385,7 +392,7 @@ export function Chat({
             parentMessage={activeThread.parentMessage}
             mainChatId={id}
             onClose={handleCloseThread}
-            className="h-full w-full"
+            className="size-full"
           />
         </div>
       )}
