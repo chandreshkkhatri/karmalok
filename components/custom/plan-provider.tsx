@@ -20,8 +20,8 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<Plan>('basic');
 
   useEffect(() => {
-    if (session?.user?.plan) {
-      setPlan(session.user.plan);
+    if (session?.user && 'plan' in session.user) {
+      setPlan((session.user as any).plan);
     }
   }, [session]);
 
