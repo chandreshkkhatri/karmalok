@@ -15,12 +15,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { appConfig } from "@/lib/config";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { useThreadCount } from "@/components/custom/use-thread-count";
 
-import { ThreadView } from "./thread-view";
 import { EnhancedMessage } from "./enhanced-message";
 import { MultimodalInput } from "./multimodal-input";
+import { ThreadView } from "./thread-view";
 
 export function Chat({
   id,
@@ -243,7 +244,7 @@ export function Chat({
                     disabled={!isPro}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Tara 2.5 Flash</span>
+                      <span className="font-medium">{appConfig.getModelDisplayName("gemini-2.5-flash")}</span>
                       <Crown className="size-3 text-yellow-500" />
                       {!isPro && <span className="text-xs text-gray-500 ml-1">Pro</span>}
                     </div>
@@ -253,7 +254,7 @@ export function Chat({
                     className="hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Tara 2.0 Flash</span>
+                      <span className="font-medium">{appConfig.getModelDisplayName("gemini-2.0-flash")}</span>
                     </div>
                   </SelectItem>
                   <SelectItem
@@ -261,7 +262,7 @@ export function Chat({
                     className="hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Tara 1.5 Flash</span>
+                      <span className="font-medium">{appConfig.getModelDisplayName("gemini-1.5-flash")}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
